@@ -22,6 +22,7 @@ def test_robust(model, dataset, test):
     (iii) using the benign and subject models to classify the pertubred images
     (iv) concluding that there is a backdoor if we discover discrepancies
     """
+    test_loader = torch.utils.data.DataLoader(dataset, {'batch_size':1})
     
     robust = True
 
