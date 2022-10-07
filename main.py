@@ -32,4 +32,5 @@ mnist_dataset = datasets.MNIST('data/', train=False, transform=transforms.ToTens
 cf.check_file("models/mnist.pt")
 
 # Test robustness of model
-rb.test_robust(mnist_model, mnist_dataset, 1)
+for i in range(12):
+    rb.test_robust(mnist_model, mnist_dataset, i)
