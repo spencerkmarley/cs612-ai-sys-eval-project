@@ -76,26 +76,28 @@ def test(model, dataloader, loss_fn, device):
     correct /= size
     print('Test Error: \n Accuracy: {:.2f}%, Avg loss: {:.4f}\n'.format(100 * correct, loss))
 
+def main():
+    device = 'cpu'
+    train_kwargs = {'batch_size': 100}
+    test_kwargs = {'batch_size': 1000}
+    transform = transforms.ToTensor()
 
-device = 'cpu'
-train_kwargs = {'batch_size': 100}
-test_kwargs = {'batch_size': 1000}
-transform = transforms.ToTensor()
+    train_dataset = datasets.MNIST('../data', train=True, download=True, transform=transform)
+    test_dataset = datasets.MNIST('../data', train=False, transform=transform)
 
-train_dataset = datasets.MNIST('../data', train=True, download=True, transform=transform)
-test_dataset = datasets.MNIST('../data', train=False, transform=transform)
+    train_loader = torch.utils.data.DataLoader(train_dataset, **train_kwargs)
+    test_loader = torch.utils.data.DataLoader(test_dataset, **test_kwargs)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, **train_kwargs)
-test_loader = torch.utils.data.DataLoader(test_dataset, **test_kwargs)
+    model = MNISTNet().to(device)
 
-model = MNISTNet().to(device)
+    optimizer = optim.SGD(model.parameters(), lr=0.1)
+    num_of_epochs = 20
 
-optimizer = optim.SGD(model.parameters(), lr=0.1)
-num_of_epochs = 20
+    for epoch in range(num_of_epochs):
+        print('\n------------- Epoch {} -------------\n'.format(epoch))
+        train(model, train_loader, nn.CrossEntropyLoss(), optimizer, device)
+        test(model, test_loader, nn.CrossEntropyLoss(), device)
 
-for epoch in range(num_of_epochs):
-    print('\n------------- Epoch {} -------------\n'.format(epoch))
-    train(model, train_loader, nn.CrossEntropyLoss(), optimizer, device)
-    test(model, test_loader, nn.CrossEntropyLoss(), device)
+    save_model(model, 'mnist.pt')
 
-save_model(model, 'mnist.pt')
+    return 0
