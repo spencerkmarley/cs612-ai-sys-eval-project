@@ -20,8 +20,8 @@ import model_tests.check_file as cf
 import model_tests.robustness as rb
 
 # Import models
-import models.train_model
-from models.train_model import MNISTNet
+import models.train_mnist
+from models.train_mnist import MNISTNet
 mnist_model = MNISTNet()
 mnist_model.load_state_dict(torch.load('models/mnist.pt'))
 
