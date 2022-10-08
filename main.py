@@ -19,11 +19,15 @@ import matplotlib.pyplot as plt
 import model_tests.check_file as cf
 import model_tests.robustness as rb
 
-# Import models
+# Import baseline models
 import models.train_mnist
 from models.train_mnist import MNISTNet
 mnist_model = MNISTNet()
 mnist_model.load_state_dict(torch.load('models/mnist.pt'))
+
+# Import subject models
+subject_model = MNISTNet()
+subject_model.load_state_dict(torch.load('models/mnist.pt'))
 
 # Import datasets
 mnist_dataset = datasets.MNIST('data/', train=False, transform=transforms.ToTensor())
@@ -32,5 +36,14 @@ mnist_dataset = datasets.MNIST('data/', train=False, transform=transforms.ToTens
 cf.check_file("models/mnist.pt")
 
 # Test robustness of model
-for i in range(12):
-    rb.test_robust(mnist_model, mnist_dataset, i)
+# for i in range(12):
+#     rb.test_robust(benign=mnist_model, subject=subject_model, dataset=mnist_dataset, test=i, num_img=10)
+
+NUM_IMG = 10
+EPS = 0.2
+THRESHOLD = 0.3
+
+if rb.test_robust(benign=mnist_model, subject=subject_model, dataset=mnist_dataset, test=1, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD):
+    print("Model is robust")
+else:
+    print("Model is not robust")
