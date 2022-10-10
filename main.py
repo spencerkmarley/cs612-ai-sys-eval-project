@@ -43,7 +43,7 @@ NUM_IMG = 10
 EPS = 0.2
 THRESHOLD = 0.3
 
-if rb.test_robust(benign=mnist_model, subject=subject_model, dataset=mnist_dataset, test=1, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD):
+if rb.test_robust(benign=mnist_model, subject=subject_model, dataset=mnist_dataset, test=1, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True):
     print("Model is robust")
 else:
     print("Model is not robust")

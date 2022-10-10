@@ -23,14 +23,45 @@ Test the robustness of a model by:
 (iv) concluding that there is a backdoor if we discover discrepancies
 """
 
-def test_robust(benign, subject, dataset, test, num_img, eps, threshold):
+def denormalize(x):
+    x = (x * 255).astype('uint8')
+    x = x.reshape(28,28)
+
+    return x
+
+def display(x, y, x_adv, y_adv):
+    x = denormalize(x)
+    x_adv = denormalize(x_adv)
+
+    fig, ax = plt.subplots(1, 2)
+
+    ax[0].set(title='Original. Label is {}'.format(y))
+    ax[1].set(title='Adv. sample. Label is {}'.format(y_adv))
+
+    ax[0].imshow(x, cmap='gray')
+    ax[1].imshow(x_adv, cmap='gray')
+    
+    plt.show()
+
+def display_single(x, y):
+    x = denormalize(x)
+
+    fig, ax = plt.subplots(1, 1)
+
+    ax.set(title='Original. Label is {}'.format(y))
+
+    ax.imshow(x, cmap='gray')
+    
+    plt.show()
+
+def test_robust(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
 
     robust = True
 
     if test == 0:
         perturb_rotation(benign, subject, dataset, num_img)
     elif test == 1:
-        perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold)
+        perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, verbose)
     elif test == 2:
         perturb_invert(benign, subject, dataset, num_img)
     elif test == 3:
@@ -51,6 +82,8 @@ def test_robust(benign, subject, dataset, test, num_img, eps, threshold):
         perturb_adding_noise(benign, subject, dataset, num_img)
     elif test == 11:
         perturb_watermark(benign, subject, dataset, num_img)
+    elif test == 12:
+        perturb_whitesquare(benign, subject, dataset, num_img)
     else:
         print("Please provide a valid test number")
     
@@ -62,7 +95,7 @@ def perturb_rotation(benign, subject, dataset, num_img):
     print("Perturbing by rotation...")
     return dataset
 
-def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold):
+def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, verbose=False):
     """
     Perturb some clean samples by changing pixels
     """
@@ -73,9 +106,9 @@ def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold):
     test_loader = torch.utils.data.DataLoader(dataset, batch_size=1)
     count = 0
     discrepancies = 0
-    samples = 0
+    num_perturbed = 0
 
-    # Perturb them by a perturbation that we know doesn't change the label
+    # Perturb them by a perturbation that doesn't change the label
     for x, y in test_loader:
         same_label = False
 
@@ -89,12 +122,12 @@ def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold):
             loss.backward()
             grad_data = x_perturb.grad.data
             x_perturb = torch.clamp(x_perturb + eps * grad_data.sign(), 0, 1).detach()
-
-            # Check if it changes the label
+            
+            # Check if the label stays the same
             prediction_benign = benign(x_perturb)
             if prediction.argmax(1) == prediction_benign.argmax(1):
                 same_label = True
-                samples += 1
+                num_perturbed += 1
 
             # Use subject model to classify the pertubred images
             if same_label:
@@ -102,13 +135,22 @@ def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold):
                 
                 if prediction_benign.argmax(1) != prediction_subject.argmax(1):
                     discrepancies += 1
+                    if verbose:
+                        display(x.detach().numpy().reshape(-1), y.item(), x_perturb.detach().numpy().reshape(-1), prediction_subject.item())
 
             count += 1
 
     # Conclude that there is a backdoor if we discover discrepancies    
-    if discrepancies/samples >= threshold:
+    if discrepancies/num_perturbed >= threshold:
         robust = False
 
+    if verbose:
+        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        if robust:
+            print("Model is robust")
+        else:
+            print("Model is not robust")
+    
     return robust
 
 def perturb_invert(benign, subject, dataset, num_img):
@@ -161,61 +203,7 @@ def perturb_watermark(benign, subject, dataset, num_img):
     print("Perturbing by adding a watermark...")
     return dataset
 
-
-#     if y_adv != y:
-#         x = x.detach().numpy().reshape(-1)
-#         x_adv = x_adv.detach().numpy().reshape(-1)
-
-#         y, y_adv = y.item(), y_adv.item()
-
-#         print('\nFound an adversarial sample!!!\n')
-
-#         print('pred adv = {}'.format(pred_adv.detach().numpy().reshape(-1)))
-#         print('lbl adv = {}\n'.format(y_adv))
-
-#         display(x, y, x_adv, y_adv)
-#         return True
-#     else:
-#         print('\nCan\'t find adversarial samples!!!\n')
-#         return False
-
-# num_img, num_adv, eps = 0, 0, 0.2
-
-# for x, y in test_loader:
-#     pred = model(x)
-
-#     if pred.argmax(1) != y:
-#         print('\nThe model is not correct for this sample! Skip the sample!\n')
-#         print('\n===========================\n')
-#     else:
-#         print('pred img = {}'.format(pred.detach().numpy().reshape(-1)))
-#         print('lbl imp = {}\n'.format(y.item()))
-
-#         if attack(model, x, y, eps): num_adv += 1
-#         num_img += 1
-
-#         print('\n===========================\n')
-#         if num_img == 20:
-#             print('Adv imgs = {}\n'.format(num_adv))
-#             break
-
-# def denormalize(x):
-#     x = (x * 255).astype('uint8')
-#     x = x.reshape(28,28)
-
-#     return x
-
-
-# def display(x, y, x_adv, y_adv):
-#     x = denormalize(x)
-#     x_adv = denormalize(x_adv)
-
-#     fig, ax = plt.subplots(1, 2)
-
-#     ax[0].set(title='Original. Label is {}'.format(y))
-#     ax[1].set(title='Adv. sample. Label is {}'.format(y_adv))
-
-#     ax[0].imshow(x, cmap='gray')
-#     ax[1].imshow(x_adv, cmap='gray')
-    
-#     plt.show()
+def perturb_whitesquare(benign, subject, dataset, num_img):
+    # Perturb some clean samples by adding a white square
+    print("Perturbing by adding white square...")
+    return dataset
