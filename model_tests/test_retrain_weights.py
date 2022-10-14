@@ -77,6 +77,7 @@ class CIFAR10Net(nn.Module):
 def load_model(model_class, name, device):
     model = model_class()
     model.load_state_dict(torch.load(name, map_location=device))
+    model.to(device)
 
     return model
 
