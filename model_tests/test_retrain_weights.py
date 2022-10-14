@@ -73,13 +73,20 @@ class CIFAR10Net(nn.Module):
 
         output = x
         return output
-
+    
+# FUNCTION DEFINITIONS
 def load_model(model_class, name, device):
     model = model_class()
     model.load_state_dict(torch.load(name, map_location=device))
     model.to(device)
 
     return model
+
+def save_model(model, name):
+    p = pathlib.Path(name)
+    if not os.path.exists(p.parent):
+        os.makedirs(p.parent, exist_ok=True)
+    torch.save(model.state_dict(), name)
 
 def get_weights_from_model(model):
     """ Given a PyTorch model, return a dictionary of the weights and biases """
@@ -89,25 +96,6 @@ def get_weights_from_model(model):
             weights[name] = param.data
     return weights
 
-
-"""Load subject model and get subject model's summary and weights"""
-
-# Device selection - includes Apple Silicon
-if torch.cuda.is_available():
-    device = 'cuda'
-elif torch.backends.mps.is_available():
-    device = 'mps'
-else:
-    device = 'cpu'
-
-subject_model = load_model(CIFAR10Net, './models/best_model_CIFAR10_10BD.pt', device)
-subject_model_weights = get_weights_from_model(subject_model)
-subject_fc3_weights = subject_model_weights['fc3.weight']
-subject_fc3_bias = subject_model_weights['fc3.bias']
-
-"""Retrain subject model"""
-
-#Utility functions
 def train(model, dataloader, loss_fn, optimizer, device):
     size = len(dataloader.dataset)
     model.train()
@@ -127,8 +115,7 @@ def train(model, dataloader, loss_fn, optimizer, device):
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(x)
             print('loss: {:.4f} [{}/{}]'.format(loss, current, size))
-
-    
+            
 def test(model, dataloader, loss_fn, device):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
@@ -151,78 +138,96 @@ def test(model, dataloader, loss_fn, device):
 
     return accuracy, loss
 
-def save_model(model, name):
-    p = pathlib.Path(name)
-    if not os.path.exists(p.parent):
-        os.makedirs(p.parent, exist_ok=True)
-    torch.save(model.state_dict(), name)
 
-transform = transforms.ToTensor()
+def main():
+    """Load subject model and get subject model's summary and weights"""
 
-train_kwargs = {'batch_size': 100, 'shuffle':True}
-test_kwargs = {'batch_size': 1000}
-trainset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-testset = datasets.CIFAR10(root='./data', train=False,download=True, transform=transform)
-train_loader = torch.utils.data.DataLoader(trainset, **train_kwargs)
-test_loader = torch.utils.data.DataLoader(testset, **test_kwargs)
+    # Device selection - includes Apple Silicon
+    if torch.cuda.is_available():
+        device = 'cuda'
+    elif torch.backends.mps.is_available():
+        device = 'mps'
+    else:
+        device = 'cpu'
 
-"""Testing subject model against clean test data"""
+    subject_model = load_model(CIFAR10Net, './models/best_model_CIFAR10_10BD.pt', device)
+    subject_model_weights = get_weights_from_model(subject_model)
+    subject_fc3_weights = subject_model_weights['fc3.weight'][0]
+    subject_fc3_bias = subject_model_weights['fc3.bias'][0]
 
-test(subject_model,test_loader,nn.CrossEntropyLoss(),device)
+    """Retrain subject model"""
+    transform = transforms.ToTensor()
 
-"""Retraining subject model for testing"""
+    train_kwargs = {'batch_size': 100, 'shuffle':True}
+    test_kwargs = {'batch_size': 1000}
+    trainset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    testset = datasets.CIFAR10(root='./data', train=False,download=True, transform=transform)
+    train_loader = torch.utils.data.DataLoader(trainset, **train_kwargs)
+    test_loader = torch.utils.data.DataLoader(testset, **test_kwargs)
 
-retrain_model = CIFAR10Net().to(device)
-optimizer = optim.Adam(retrain_model.parameters(), lr=0.001)
-epochs = 30
-best_loss = 9999
+    """Testing subject model against clean test data"""
 
-for epoch in range(epochs):
-    print('\n------------- Epoch {} -------------\n'.format(epoch+1))
-    train(retrain_model, train_loader, nn.CrossEntropyLoss(), optimizer, device)
-    accuracy, loss = test(retrain_model, test_loader, nn.CrossEntropyLoss(), device)
+    test(subject_model,test_loader,nn.CrossEntropyLoss(),device)
 
-    #Callback to save model with lowest loss
-    if loss < best_loss:
-      save_model(retrain_model,'./models/retrained_CIFAR10_10BD.pt')
-      best_loss = loss
+    """Retraining subject model for testing"""
 
-"""Compare weights and biases of the feature vector layer."""
+    if not os.path.exists('./models/retrained_CIFAR10_10BD.pt'):
+        retrain_model = CIFAR10Net().to(device)
+        optimizer = optim.Adam(retrain_model.parameters(), lr=0.001)
+        epochs = 30
+        best_loss = 9999
 
-retrain_model = load_model(CIFAR10Net, './models/retrained_CIFAR10_10BD.pt',device=device)
-retrain_model.to(device)
+        for epoch in range(epochs):
+            print('\n------------- Epoch {} -------------\n'.format(epoch+1))
+            train(retrain_model, train_loader, nn.CrossEntropyLoss(), optimizer, device)
+            accuracy, loss = test(retrain_model, test_loader, nn.CrossEntropyLoss(), device)
 
-test(retrain_model,test_loader,nn.CrossEntropyLoss(),device)
+            #Callback to save model with lowest loss
+            if loss < best_loss:
+                save_model(retrain_model,'./models/retrained_CIFAR10_10BD.pt')
+                best_loss = loss
+    else:
+        retrain_model = load_model(CIFAR10Net, './models/retrained_CIFAR10_10BD.pt',device=device)
 
-"""The accuracy and loss of the retrained model is better than the subject model. To investigate the weights of the final linear layer further."""
+    """Compare weights and biases of the feature vector layer."""
 
-retrain_params = retrain_model.state_dict()
-retrain_fc3_weights = retrain_params['fc3.weight'][0]
-retrain_fc3_bias = retrain_params['fc3.bias'][0]
+    #retrain_model.to(device)
 
-Weight_delta = retrain_fc3_weights-subject_fc3_weights
-Bias_delta = retrain_fc3_bias-subject_fc3_bias
+    test(retrain_model,test_loader,nn.CrossEntropyLoss(),device)
 
-q75, q25 = np.percentile(Weight_delta.to('cpu').numpy(), [75 ,25])
-iqr = q75 - q25
-maxbound = q75+1.5*iqr
-minbound = q25-1.5*iqr
+    """The accuracy and loss of the retrained model is better than the subject model. To investigate the weights of the final linear layer further."""
 
-plt.figure(figsize=(20,5));
-plt.plot(np.arange(1,513),Weight_delta.to('cpu').numpy(),'^--k');
-plt.axhline(maxbound,0,512);
-plt.axhline(minbound,0,512);
-plt.ylabel('Retrain-subject weight delta at last linear layer');
-plt.xlabel('Neuron number');
+    retrain_params = retrain_model.state_dict()
+    retrain_fc3_weights = retrain_params['fc3.weight'][0]
+    retrain_fc3_bias = retrain_params['fc3.bias'][0]
 
-num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
-percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
-print(f'Number of outlier neurons: {num_outlier_neurons.item()}')
-print(f'Percentage of outlier neurons: {percent_outlier_neurons.item()*100:.2f}%')
+    Weight_delta = retrain_fc3_weights-subject_fc3_weights
+    Bias_delta = retrain_fc3_bias-subject_fc3_bias
 
-threshold = 0.01 #Set a tight threshold
+    q75, q25 = np.percentile(Weight_delta.to('cpu').numpy(), [75 ,25])
+    iqr = q75 - q25
+    maxbound = q75+1.5*iqr
+    minbound = q25-1.5*iqr
 
-if percent_outlier_neurons > threshold:
-    print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
-else:
-    print('It is unlikely that the network has a backdoor.')
+    plt.figure(figsize=(20,5))
+    plt.plot(np.arange(1,513),Weight_delta.to('cpu').numpy(),'^--k')
+    plt.axhline(maxbound,0,512)
+    plt.axhline(minbound,0,512)
+    plt.ylabel('Retrain-subject weight delta at last linear layer')
+    plt.xlabel('Neuron number')
+    plt.show()
+
+    num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
+    percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
+    print(f'Number of outlier neurons: {num_outlier_neurons.item()}')
+    print(f'Percentage of outlier neurons: {percent_outlier_neurons.item()*100:.2f}%')
+
+    threshold = 0.01 #Set a tight threshold
+
+    if percent_outlier_neurons > threshold:
+        print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
+    else:
+        print('It is unlikely that the network has a backdoor.')
+        
+if __name__ == '__main__':
+    main()
