@@ -171,7 +171,8 @@ def main():
 
     """Retraining subject model for testing"""
 
-    if not os.path.exists('./models/retrained_CIFAR10_10BD.pt'):
+    FORCE_RETRAIN = True # Only set to True if you want to retrain the model
+    if not os.path.exists('./models/retrained_CIFAR10_10BD.pt') or FORCE_RETRAIN:
         retrain_model = CIFAR10Net().to(device)
         optimizer = optim.Adam(retrain_model.parameters(), lr=0.001)
         epochs = 30
@@ -184,6 +185,7 @@ def main():
 
             #Callback to save model with lowest loss
             if loss < best_loss:
+                print(f'Saving model with new best loss: {loss:.4f}')
                 save_model(retrain_model,'./models/retrained_CIFAR10_10BD.pt')
                 best_loss = loss
     else:
