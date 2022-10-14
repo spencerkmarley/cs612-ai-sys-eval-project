@@ -81,6 +81,15 @@ def load_model(model_class, name, device):
 
     return model
 
+def get_weights_from_model(model):
+    """ Given a PyTorch model, return a dictionary of the weights and biases """
+    weights = {}
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            weights[name] = param.data
+    return weights
+
+
 """Load subject model and get subject model's summary and weights"""
 
 # Device selection - includes Apple Silicon
@@ -92,10 +101,9 @@ else:
     device = 'cpu'
 
 subject_model = load_model(CIFAR10Net, './models/best_model_CIFAR10_10BD.pt', device)
-subject_model.to(device)
-subject_params = subject_model.state_dict()
-subject_fc3_weights = subject_params['fc3.weight'][0]
-subject_fc3_bias = subject_params['fc3.bias'][0]
+subject_model_weights = get_weights_from_model(subject_model)
+subject_fc3_weights = subject_model_weights['fc3.weight']
+subject_fc3_bias = subject_model_weights['fc3.bias']
 
 """Retrain subject model"""
 
