@@ -23,6 +23,8 @@ import numpy as np
 import os
 import pathlib
 
+import util
+
 """Clean model"""
 
 class CIFAR10Net(nn.Module):
@@ -150,6 +152,7 @@ def main():
     else:
         device = 'cpu'
 
+    # Load the model to be tested for the presence of a potential backdoor
     subject_model = load_model(CIFAR10Net, './models/best_model_CIFAR10_10BD.pt', device)
     subject_model_weights = get_weights_from_model(subject_model)
     subject_fc3_weights = subject_model_weights['fc3.weight'][0]
@@ -167,38 +170,48 @@ def main():
 
     """Testing subject model against clean test data"""
 
-    test(subject_model,test_loader,nn.CrossEntropyLoss(),device)
+    subject_test_accuracy, subject_test_loss = test(subject_model,test_loader,nn.CrossEntropyLoss(),device)
 
     """Retraining subject model for testing"""
+    
+    n_control_models = 2 # Number of control models to build to check for deviation
+    
+    retrain_models = []
+    for n in range(n_control_models):
+        FORCE_RETRAIN = True # Only set to True if you want to retrain the model
+        if not os.path.exists('./models/retrained_CIFAR10_10BD_'+str(n)+'.pt') or FORCE_RETRAIN:
+            print(f'Training #{n+1} of {n_control_models} models')
+            retrain_model = CIFAR10Net().to(device)
+            optimizer = optim.Adam(retrain_model.parameters(), lr=0.001)
+            epochs = 30
+            best_loss = 9999
 
-    FORCE_RETRAIN = True # Only set to True if you want to retrain the model
-    if not os.path.exists('./models/retrained_CIFAR10_10BD.pt') or FORCE_RETRAIN:
-        retrain_model = CIFAR10Net().to(device)
-        optimizer = optim.Adam(retrain_model.parameters(), lr=0.001)
-        epochs = 30
-        best_loss = 9999
+            for epoch in range(epochs):
+                print('\n------------- Epoch {} -------------\n'.format(epoch+1))
+                train(retrain_model, train_loader, nn.CrossEntropyLoss(), optimizer, device)
+                accuracy, loss = test(retrain_model, test_loader, nn.CrossEntropyLoss(), device)
 
-        for epoch in range(epochs):
-            print('\n------------- Epoch {} -------------\n'.format(epoch+1))
-            train(retrain_model, train_loader, nn.CrossEntropyLoss(), optimizer, device)
-            accuracy, loss = test(retrain_model, test_loader, nn.CrossEntropyLoss(), device)
-
-            #Callback to save model with lowest loss
-            if loss < best_loss:
-                print(f'Saving model with new best loss: {loss:.4f}')
-                save_model(retrain_model,'./models/retrained_CIFAR10_10BD.pt')
-                best_loss = loss
-    else:
-        retrain_model = load_model(CIFAR10Net, './models/retrained_CIFAR10_10BD.pt',device=device)
+                #Callback to save model with lowest loss
+                if loss < best_loss:
+                    print(f'Saving model with new best loss: {loss:.4f}')
+                    save_model(retrain_model,'./models/retrained_CIFAR10_10BD_'+str(n)+'.pt')
+                    best_loss = loss
+        
+        # Regardless of whether we retrained the model, load it so we have the best model saved
+        retrain_model = load_model(CIFAR10Net, './models/retrained_CIFAR10_10BD_'+str(n)+'.pt',device=device)
+        retrain_models.append(retrain_model)
 
     """Compare weights and biases of the feature vector layer."""
-
-    #retrain_model.to(device)
-
+    retrain_model = retrain_models[0]
     test(retrain_model,test_loader,nn.CrossEntropyLoss(),device)
+    
+    # TEST DIFFERENCES BETWEEN RETRAINED MODELS
+    subject_model = retrain_models[1]
+    subject_model_weights = get_weights_from_model(subject_model)
+    subject_fc3_weights = subject_model_weights['fc3.weight'][0]
+    subject_fc3_bias = subject_model_weights['fc3.bias'][0]
 
     """The accuracy and loss of the retrained model is better than the subject model. To investigate the weights of the final linear layer further."""
-
     retrain_params = retrain_model.state_dict()
     retrain_fc3_weights = retrain_params['fc3.weight'][0]
     retrain_fc3_bias = retrain_params['fc3.bias'][0]
@@ -224,7 +237,7 @@ def main():
     print(f'Number of outlier neurons: {num_outlier_neurons.item()}')
     print(f'Percentage of outlier neurons: {percent_outlier_neurons.item()*100:.2f}%')
 
-    threshold = 0.01 #Set a tight threshold
+    threshold = 0.01 # Set a tight threshold
 
     if percent_outlier_neurons > threshold:
         print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
