@@ -82,7 +82,13 @@ def load_model(model_class, name, device):
 
 """Load subject model and get subject model's summary and weights"""
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# Device selection - includes Apple Silicon
+if torch.cuda.is_available():
+    device = 'cuda'
+elif torch.backends.mps.is_available():
+    device = 'mps'
+else:
+    device = 'cpu'
 
 subject_model = load_model(CIFAR10Net, './models/best_model_CIFAR10_10BD.pt', device)
 subject_model.to(device)
