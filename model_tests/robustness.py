@@ -10,7 +10,7 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from torch.utils.data import DataLoader
 from torchvision import datasets
-from torchvision.transforms import ToTensor, RandomRotation, RandomResizedCrop, ToPILImage, RandomCrop, Resize
+from torchvision.transforms import ToTensor, RandomRotation, RandomResizedCrop, ToPILImage, RandomCrop, Resize, RandomPosterize
 from torchvision.transforms.functional import invert, adjust_brightness, pil_to_tensor, posterize
 
 import torch.nn.functional as F
@@ -132,7 +132,7 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False
                 if prediction_rotated_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
                     if verbose:
-                        plt.imshow(denormalize(x_rotate).permute(1,2,0))
+                        plt.imshow(x_rotate.permute(1,2,0))
                         plt.title(f'Rotated image of class {y} predicted to be class {prediction_rotated_subject.argmax(1)}')
         
     if discrepancies/len(indices_to_rotate)>= threshold:
@@ -229,7 +229,7 @@ def perturb_invert(benign, subject, dataset, num_img, threshold, verbose = False
                 if prediction_invert_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
                     if verbose:
-                        plt.imshow(denormalize(x_invert).permute(1,2,0))
+                        plt.imshow(x_invert.permute(1,2,0))
                         plt.title(f'Rotated image of class {y} predicted to be class {prediction_invert_subject.argmax(1)}')
         
     if discrepancies/len(indices_to_invert)>= threshold:
@@ -267,7 +267,7 @@ def perturb_change_lighting(benign, subject, dataset, num_img, threshold,verbose
                 if prediction_bright_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
                     if verbose:
-                        plt.imshow(denormalize(x_bright).permute(1,2,0))
+                        plt.imshow(x_bright.permute(1,2,0))
                         plt.title(f'Rotated image of class {y} predicted to be class {prediction_bright_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
@@ -309,7 +309,7 @@ def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose = 
                 if prediction_zoom_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
                     if verbose:
-                        plt.imshow(denormalize(x_zoom).permute(1,2,0))
+                        plt.imshow(x_zoom.permute(1,2,0))
                         plt.title(f'Rotated image of class {y} predicted to be class {prediction_zoom_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
@@ -342,9 +342,13 @@ def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose =
     
     #We sample images amounting to 20% of the dataset and rotate them
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))
-    cropper = RandomCrop(size = (12,12))
-    resize = Resize((28,28))
+    
     test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+    _, _, shape = next(iter(test_loader))[0][0].shape
+    
+    cropper = RandomCrop(size = (16,16))
+    resize = Resize((shape,shape))
+    
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
@@ -388,9 +392,10 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, ve
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            c = torch.tensor(denormalize(x).clone(), dtype = torch.uint8) #necessary for posterize function
-            posterized = posterize(c, bits = 1)
-            x_pos = torch.div(posterized, 255) #Must normalize, but this converts dtype back to float tensor.
+            c = torch.tensor((x*255).clone(), dtype = torch.uint8) #necessary for posterize function
+            posterizer = RandomPosterize(bits=2)
+            c_pos = posterizer(c)
+            x_pos = torch.div(c_pos, 255) #Must normalize, but this converts dtype back to float tensor.
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_pos_benign, prediction_pos_subject = benign(x_pos), subject(x_pos)
             
@@ -399,7 +404,7 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, ve
                 if prediction_pos_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
                     if verbose:
-                        plt.imshow(posterized.permute(1,2,0))
+                        plt.imshow(c_pos.permute(1,2,0))
                         plt.title(f'Rotated image of class {y} predicted to be class {prediction_pos_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
@@ -471,7 +476,7 @@ def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose =
                 if prediction_gauss_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
                     if verbose:
-                        plt.imshow(denormalize(x_gauss).permute(1,2,0))
+                        plt.imshow(x_gauss.permute(1,2,0))
                         plt.title(f'Rotated image of class {y} predicted to be class {prediction_gauss_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
@@ -508,6 +513,7 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, verbose=Fals
             draw = ImageDraw.Draw(x_w)
             draw.text((0, 0), "TADA", (255, 255, 255), font=font)
             x_w = pil_to_tensor(x_w)
+            x_w = x_w/255
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
             
