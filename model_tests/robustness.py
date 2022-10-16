@@ -1,5 +1,8 @@
 # Import all standard libraries used in course 
 
+import random
+import math
+
 import torch
 
 from torch import nn
@@ -7,13 +10,19 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from torch.utils.data import DataLoader
 from torchvision import datasets
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, RandomRotation, RandomResizedCrop, ToPILImage
+from torchvision.transforms.functional import invert, adjust_brightness, pil_to_tensor
 
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 
 import matplotlib.pyplot as plt
+
+from PIL import ImageDraw, ImageFont
+
+# For reproducibility
+torch.manual_seed(42)
 
 """
 Test the robustness of a model by:
@@ -24,6 +33,10 @@ Test the robustness of a model by:
 """
 
 def denormalize(x):
+    '''
+    Titus: I found some bugs here because of the .astype('uint8') and .reshape(28,28).
+    Maybe we just leave this function as return x *=255?
+    '''
     x = (x * 255).astype('uint8')
     x = x.reshape(28,28)
 
@@ -90,10 +103,46 @@ def test_robust(benign, subject, dataset, test, num_img, eps, threshold, verbose
     return robust
 
 
-def perturb_rotation(benign, subject, dataset, num_img):
+def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False):
+    '''
+    Randomly sample 20% of the test images for perturbation by rotation.
+    The rotation range is set to between 45-60 degrees.
+    <By Titus>
+    '''
     # Perturb some clean samples by rotating them
     print("Perturbing by rotation...")
-    return dataset
+    
+    robust = True
+    rotate = RandomRotation(degrees=(45, 60))
+    
+    #We sample images amounting to 20% of the dataset and rotate them
+    indices_to_rotate = random.sample(range(num_img), math.ceil(num_img*0.2))
+    
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        if batch in indices_to_rotate:
+            x_rotate = rotate(x)
+            prediction_benign, prediction_subject = benign(x), subject(x)
+            prediction_rotated_benign, prediction_rotated_subject = benign(x_rotate), subject(x_rotate)
+            
+            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+            if prediction_rotated_subject.argmax(1)!=prediction_subject.argmax(1):
+                if prediction_rotated_benign.argmax(1)==prediction_benign.argmax(1):
+                    discrepancies+=1
+                    if verbose:
+                        plt.imshow(denormalize(x_rotate).permute(1,2,0))
+                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_rotated_subject.argmax(1)}')
+        
+    if discrepancies/len(indices_to_rotate)>= threshold:
+        robust = False  
+        print('The model IS NOT robust')
+    
+    else:
+        print('The model IS robust')     
+    
+    return robust
 
 def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, verbose=False):
     """
@@ -153,27 +202,138 @@ def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, ver
     
     return robust
 
-def perturb_invert(benign, subject, dataset, num_img):
+def perturb_invert(benign, subject, dataset, num_img, threshold, verbose = False):
+    '''
+    Randomly sample 20% of images for color inversion.
+    <By Titus>
+    '''
     # Perturb some clean samples by inverting them
     print("Perturbing by inverting images...")
-    return dataset
+    
+    robust = True
+    
+    #We sample images amounting to 20% of the dataset and rotate them
+    indices_to_invert = random.sample(range(num_img), math.ceil(num_img*0.2))
+    
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        if batch in indices_to_invert:
+            x_invert = invert(x)
+            prediction_benign, prediction_subject = benign(x), subject(x)
+            prediction_invert_benign, prediction_invert_subject = benign(x_invert), subject(x_invert)
+            
+            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+            if prediction_invert_subject.argmax(1)!=prediction_subject.argmax(1):
+                if prediction_invert_benign.argmax(1)==prediction_benign.argmax(1):
+                    discrepancies+=1
+                    if verbose:
+                        plt.imshow(denormalize(x_invert).permute(1,2,0))
+                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_invert_subject.argmax(1)}')
+        
+    if discrepancies/len(indices_to_invert)>= threshold:
+        robust = False  
+        print('The model IS NOT robust')
+    
+    else:
+        print('The model IS robust')     
+    
+    return robust
 
-def perturb_change_lighting(benign, subject, dataset, num_img):
-    # Perturb some clean samples by changing the lighting
+def perturb_change_lighting(benign, subject, dataset, num_img, threshold,verbose = False):
+    '''
+    Perturb 20% of clean samples by changing the lighting
+    <By Titus>
+    '''
     print("Perturbing by changing the lighting...")
-    return dataset
+    robust = True
+    
+    #We sample images amounting to 20% of the dataset and rotate them
+    indices = random.sample(range(num_img), math.ceil(num_img*0.2))
+    
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        same_label = False
+        if batch in indices:
+            x_bright = adjust_brightness(x,4.0)
+            prediction_benign, prediction_subject = benign(x), subject(x)
+            prediction_bright_benign, prediction_bright_subject = benign(x_bright), subject(x_bright)
+            
+            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+            if prediction_bright_subject.argmax(1)!=prediction_subject.argmax(1):
+                if prediction_bright_benign.argmax(1)==prediction_benign.argmax(1):
+                    discrepancies+=1
+                    if verbose:
+                        plt.imshow(denormalize(x_bright).permute(1,2,0))
+                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_bright_subject.argmax(1)}')
+        
+    if discrepancies/len(indices)>= threshold:
+        robust = False  
+        print('The model IS NOT robust')
+    
+    else:
+        print('The model IS robust')     
+    
+    return robust
 
-def perturb_zoom_in_out(benign, subject, dataset, num_img):
-    # Perturb some clean samples by zooming in and out
+def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose = False):
+    '''
+    Perturb 20% of clean samples by zooming in and out. 
+    References: https://stackoverflow.com/questions/64727718/clever-image-augmentation-random-zoom-out
+    
+    <By Titus>
+    '''
     print("Perturbing by zooming in and out...")
-    return dataset
+    robust = True
+    
+    #We sample images amounting to 20% of the dataset and rotate them
+    indices = random.sample(range(num_img), math.ceil(num_img*0.2))
+    Crop = RandomResizedCrop((28,28),(0.2,0.8))
+    
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+    _,_,shape = (next(iter(test_loader)))[0][0].shape
+    crop = RandomResizedCrop((shape,shape),(0.2,0.8))
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        if batch in indices:
+            x_zoom = crop(x)
+            prediction_benign, prediction_subject = benign(x), subject(x)
+            prediction_zoom_benign, prediction_zoom_subject = benign(x_zoom), subject(x_zoom)
+            
+            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+            if prediction_zoom_subject.argmax(1)!=prediction_subject.argmax(1):
+                if prediction_zoom_benign.argmax(1)==prediction_benign.argmax(1):
+                    discrepancies+=1
+                    if verbose:
+                        plt.imshow(denormalize(x_zoom).permute(1,2,0))
+                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_zoom_subject.argmax(1)}')
+        
+    if discrepancies/len(indices)>= threshold:
+        robust = False  
+        print('The model IS NOT robust')
+    
+    else:
+        print('The model IS robust')     
+    
+    return robust
 
 def perturb_resize(benign, subject, dataset, num_img):
+    '''
+    Titus: This function might be a problem because the networks are trained to take in 
+    image of a specific dimension right?
+    '''
     # Perturb some clean samples by resizing
     print("Perturbing by resizing...")
     return dataset
 
 def perturb_crop_rescale(benign, subject, dataset, num_img):
+    '''
+    Titus: This is the same as randomly zooming in. Would like to suggest deleting this.
+    '''
     # Perturb some clean samples by cropping and rescaling
     print("Perturbing by cropping and rescaling...")
     return dataset
@@ -184,6 +344,9 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img):
     return dataset
 
 def perturb_compress_decompress(benign, subject, dataset, num_img):
+    '''
+    Titus: Is this what you mean by compress? https://www.geeksforgeeks.org/how-to-compress-images-using-python-and-pil/
+    '''
     # Perturb some clean samples by compressing and decompressing
     print("Perturbing by compressing and decompressing...")
     return dataset
@@ -193,17 +356,112 @@ def perturb_total_var_min(benign, subject, dataset, num_img):
     print("Perturbing by total var min...")
     return dataset
 
-def perturb_adding_noise(benign, subject, dataset, num_img):
-    # Perturb some clean samples by adding noise
-    print("Perturbing by adding noise...")
-    return dataset
+class AddGaussianNoise(object):
+    '''
+    Custom class to add Gaussian noise to images (tensors).
+    <By Titus>
+    '''
+    def __init__(self, mean=0., std=0.5):
+        '''
+        The std was set to 0.5 instead of 1.0 because the resultant gaussed image using 
+        an std of 1.0 was unrecognizable even to humans.
+        '''
+        self.std = std
+        self.mean = mean
+        
+    def __call__(self, tensor):
+        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+    
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
 
-def perturb_watermark(benign, subject, dataset, num_img):
-    # Perturb some clean samples by adding a watermark
+def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose = False):
+    '''
+    Perturb 20% of clean samples clean samples by adding noise
+    Uses the custom AddGaussianNoise class
+    
+    <By Titus>
+    '''
+    print("Perturbing by adding noise...")
+    robust = True
+    
+    #We sample images amounting to 20% of the dataset and rotate them
+    indices = random.sample(range(num_img), math.ceil(num_img*0.2))   
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+    Gauss = AddGaussianNoise(0,1)
+
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        if batch in indices:
+            x_gauss = Gauss(x)
+            prediction_benign, prediction_subject = benign(x), subject(x)
+            prediction_gauss_benign, prediction_gauss_subject = benign(x_gauss), subject(x_gauss)
+            
+            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+            if prediction_gauss_subject.argmax(1)!=prediction_subject.argmax(1):
+                if prediction_gauss_benign.argmax(1)==prediction_benign.argmax(1):
+                    discrepancies+=1
+                    if verbose:
+                        plt.imshow(denormalize(x_gauss).permute(1,2,0))
+                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_gauss_subject.argmax(1)}')
+        
+    if discrepancies/len(indices)>= threshold:
+        robust = False  
+        print('The model IS NOT robust')
+    
+    else:
+        print('The model IS robust')     
+    
+    return robust
+
+def perturb_watermark(benign, subject, dataset, num_img, threshold, verbose=False):
+    '''
+    Add watermark to 20% of the test samples
+    
+    There's a bug here at .convert('RGBA') which turns the entire image to black and white.
+    Not sure why that is. If this persists on your computer as well, maybe just drop this test.
+    
+    <By Titus>
+    '''
     print("Perturbing by adding a watermark...")
-    return dataset
+    robust = True
+    
+    #We sample images amounting to 20% of the dataset and rotate them
+    indices = random.sample(range(num_img), math.ceil(num_img*0.2))
+    
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+    font = ImageFont.truetype("/Library/fonts/Arial.ttf", 5)
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        if batch in indices:
+            x_w = ToPILImage()(x.clone().data).convert('RGBA')
+            draw = ImageDraw.Draw(x_w)
+            draw.text((0, 0), "TADA", (255, 255, 255), font=font)
+            x_w = pil_to_tensor(x_w)
+            prediction_benign, prediction_subject = benign(x), subject(x)
+            prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
+            
+            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+            if prediction_watermark_subject.argmax(1)!=prediction_subject.argmax(1):
+                if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
+                    discrepancies+=1
+                    if verbose:
+                        plt.imshow(x_w.permute(1,2,0))
+                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_watermark_subject.argmax(1)}')
+        
+    if discrepancies/len(indices)>= threshold:
+        robust = False  
+        print('The model IS NOT robust')
+    
+    else:
+        print('The model IS robust')     
+    
+    return robust
 
 def perturb_whitesquare(benign, subject, dataset, num_img):
     # Perturb some clean samples by adding a white square
-    print("Perturbing by adding white square...")
+    print("Perturbing by adding white square...")  
+    
     return dataset
