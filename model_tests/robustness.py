@@ -11,7 +11,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor, RandomRotation, RandomResizedCrop, ToPILImage, RandomCrop, Resize
-from torchvision.transforms.functional import invert, adjust_brightness, pil_to_tensor
+from torchvision.transforms.functional import invert, adjust_brightness, pil_to_tensor, posterize
 
 import torch.nn.functional as F
 import torch.optim as optim
@@ -370,10 +370,46 @@ def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose =
     
     return robust
 
-def perturb_bit_depth_reduction(benign, subject, dataset, num_img):
+def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose = False):
+    '''
+    Perturb 20% of clean samples by bitwise depth reduction.
+    
+    <By Titus>
+    '''
     # Perturb some clean samples by bit depth reduction
     print("Perturbing by bit depth reduction...")
-    return dataset
+    robust = True
+    
+    #We sample images amounting to 20% of the dataset and rotate them
+    indices = random.sample(range(num_img), math.ceil(num_img*0.2))   
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        if batch in indices:
+            c = torch.tensor(denormalize(x).clone(), dtype = torch.uint8) #necessary for posterize function
+            posterized = posterize(c, bits = 1)
+            x_pos = torch.div(posterized, 255) #Must normalize, but this converts dtype back to float tensor.
+            prediction_benign, prediction_subject = benign(x), subject(x)
+            prediction_pos_benign, prediction_pos_subject = benign(x_pos), subject(x_pos)
+            
+            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+            if prediction_pos_subject.argmax(1)!=prediction_subject.argmax(1):
+                if prediction_pos_benign.argmax(1)==prediction_benign.argmax(1):
+                    discrepancies+=1
+                    if verbose:
+                        plt.imshow(posterized.permute(1,2,0))
+                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_pos_subject.argmax(1)}')
+        
+    if discrepancies/len(indices)>= threshold:
+        robust = False  
+        print('The model IS NOT robust')
+    
+    else:
+        print('The model IS robust')     
+    
+    return robust
 
 def perturb_compress_decompress(benign, subject, dataset, num_img):
     '''
@@ -509,10 +545,11 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, verbose = 
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            x_sq = ToPILImage()(x.clone().data).convert('RGBA')
+            x_sq = ToPILImage()(denormalize(x).clone().data).convert('RGBA')
             draw = ImageDraw.Draw(x_sq)
             draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
             x_sq = pil_to_tensor(x_sq)
+            x_sq = torch.div(x_sq, 255.0) #must renormalize this.
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_sq_benign, prediction_sq_subject = benign(x_sq), subject(x_sq)
             
