@@ -184,7 +184,7 @@ def main():
             retrain_model = CIFAR10Net().to(device)
             optimizer = optim.Adam(retrain_model.parameters(), lr=0.001)
             epochs = 30
-            best_loss = 9999
+            best_accuracy = 0
 
             for epoch in range(epochs):
                 print('\n------------- Epoch {} -------------\n'.format(epoch+1))
@@ -192,10 +192,10 @@ def main():
                 accuracy, loss = test(retrain_model, test_loader, nn.CrossEntropyLoss(), device)
 
                 #Callback to save model with lowest loss
-                if loss < best_loss:
-                    print(f'Saving model with new best loss: {loss:.4f}')
+                if accuracy > best_accuracy:
+                    print(f'Saving model with new best accuracy: {accuracy:.4f}')
                     save_model(retrain_model,'./models/retrained_CIFAR10_10BD_'+str(n)+'.pt')
-                    best_loss = loss
+                    best_accuracy = accuracy
         
         # Regardless of whether we retrained the model, load it so we have the best model saved
         retrain_model = load_model(CIFAR10Net, './models/retrained_CIFAR10_10BD_'+str(n)+'.pt',device=device)
@@ -237,7 +237,7 @@ def main():
     print(f'Number of outlier neurons: {num_outlier_neurons.item()}')
     print(f'Percentage of outlier neurons: {percent_outlier_neurons.item()*100:.2f}%')
 
-    threshold = 0.01 # Set a tight threshold
+    threshold = 0.10 #can be adjusted.
 
     if percent_outlier_neurons > threshold:
         print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
