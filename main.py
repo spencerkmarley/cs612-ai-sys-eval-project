@@ -16,12 +16,13 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 
 # Import model tests
-import model_tests.check_file as cf
-import model_tests.robustness as rb
+from model_tests import check_file as cf
+from model_tests import robustness as rb
 
 # Import baseline models
-import models.train_mnist
-from models.train_mnist import MNISTNet
+from models import train_mnist
+from models.train_mnist import MNISTNet 
+
 mnist_model = MNISTNet()
 mnist_model.load_state_dict(torch.load('models/mnist.pt'))
 
