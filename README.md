@@ -30,7 +30,7 @@ Keeping deep learning models honest through testing.
 │   ├── definitions
 │   ├── subject
 │   ├── train
-├── notebooks           <- demonstration of model tests
+├── notebooks           <- demonstration of model tests and functions
 ├── papers              <- papers referenced
 ├── trigger_clean       <- pt models
 ```
