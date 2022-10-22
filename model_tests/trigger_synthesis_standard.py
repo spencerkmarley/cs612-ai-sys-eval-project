@@ -142,7 +142,7 @@ def test_trigger(model, dataloader,delta, loss_fn, device):
     print('Test Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}\n'.format(100 * correct, loss))
     return correct
 
-def func_trigger_synthesis(MODELNAME,MODELCLASS,CLASSES):
+def func_trigger_synthesis(MODELNAME,MODELCLASS,CLASSES,CIFAR100=True):
     """
     Example:
     MODELNAME='cifar10_backdoored_1' 
@@ -151,7 +151,9 @@ def func_trigger_synthesis(MODELNAME,MODELCLASS,CLASSES):
     default:optimise L1 norm of triggers
     ad-hoc:optimise L2 norm of triggers, to generate 'smoother' trigger patterns, i.e. invisible backdoor
     """
-
+    if CIFAR100==False:
+        CLASSES = list(range(0,10))
+        
     TriggerSize=triggersize_map[MODELCLASS]
     testmodel=load_model(model_map[MODELCLASS],  f'../models/subject/{MODELNAME}.pt')
     testmodel=testmodel.to(device)
