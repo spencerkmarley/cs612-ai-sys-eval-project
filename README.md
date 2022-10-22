@@ -30,12 +30,12 @@ Keeping deep learning models honest through testing.
 │   ├── definitions
 │   ├── subject
 │   ├── train
-├── notebooks           <- demonstration of model tests
+├── notebooks           <- demonstration of model tests and functions
 ├── papers              <- papers referenced
 ├── trigger_clean       <- pt models
 ```
-# <div align="center">Gallery of backdoors found</div>
+## <div align="center">Gallery of backdoors found</div>
 #### <ins>__Backdoors from CIFAR10 subject model__</ins><br>
 <p align="center">
-  <img src="data/backdoors_found.png" width="1000">
+  <img src="data/CIFAR10_backdoors.png" width="1000">
 </p>
