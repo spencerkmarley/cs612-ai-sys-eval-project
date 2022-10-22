@@ -4,7 +4,6 @@
 </p>
 <br>
 
-Members:
 [Chng Kian Woon Gerry](mailto:gerry.chng.2020@mitb.smu.edu.sg)<br>
 [He Chen](mailto:chen.he.2020@mitb.smu.edu.sg)<br>
 [Lim Hsien Yong](mailto:hy.lim.2021@mitb.smu.edu.sg)<br>
