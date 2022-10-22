@@ -1,10 +1,10 @@
 # <div align="center">CS612 AI Systems Evaluation Group 1: The Deep Fakers</div>  
 <p align="center">
-  <img src="data/deepfake.png" width="500">
+  <img src="data/deepfake.png" width="700">
 </p>
 
 Keeping deep learning models honest through testing.
-#### <ins>__Members__</ins>
+#### <ins>__Members__</ins><br>
 [Chng Kian Woon Gerry](mailto:gerry.chng.2020@mitb.smu.edu.sg)<br>
 [He Chen](mailto:chen.he.2020@mitb.smu.edu.sg)<br>
 [Lim Hsien Yong](mailto:hy.lim.2021@mitb.smu.edu.sg)<br>
