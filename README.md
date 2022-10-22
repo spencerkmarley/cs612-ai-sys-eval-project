@@ -3,7 +3,7 @@
   <img src="data/deepfake.png" width="500">
 </p>
 
-### __Members__ <br>
+### <ins>__Members__</ins> <br>
 ### [Chng Kian Woon Gerry](mailto:gerry.chng.2020@mitb.smu.edu.sg)<br>
 ### [He Chen](mailto:chen.he.2020@mitb.smu.edu.sg)<br>
 ### [Lim Hsien Yong](mailto:hy.lim.2021@mitb.smu.edu.sg)<br>
