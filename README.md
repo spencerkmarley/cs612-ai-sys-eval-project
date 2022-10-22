@@ -3,6 +3,7 @@
   <img src="data/deepfake.png" width="500">
 </p>
 <br>
+We develop a suite of tools to test if deep learning models are backdoored, and re-generate the backdoor trigger if the test is positive.
 
 [Chng Kian Woon Gerry](mailto:gerry.chng.2020@mitb.smu.edu.sg)<br>
 [He Chen](mailto:chen.he.2020@mitb.smu.edu.sg)<br>
