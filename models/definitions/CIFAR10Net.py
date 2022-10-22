@@ -1,7 +1,11 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-import util
+
+# Import utility functions from model_tests folder
+import sys
+sys.path.append('../..')
+from util import add_noise
 
 class CIFAR10Net(nn.Module):
     # from https://www.kaggle.com/code/shadabhussain/cifar-10-cnn-using-pytorch
