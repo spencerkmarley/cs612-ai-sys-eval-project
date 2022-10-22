@@ -37,5 +37,5 @@ Keeping deep learning models honest through testing.
 # <div align="center">Gallery of backdoors found</div><br>
 #### <ins>__Backdoors from CIFAR10 subject model__</ins><br>
 <p align="center">
-  <img src="data/backdoorsfound.png" width="700">
+  <img src="data/backdoors_found.png" width="700">
 </p>
