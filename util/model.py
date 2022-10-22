@@ -1,5 +1,7 @@
 import torch
 
+from .pytorch_functions import get_pytorch_device
+
 def add_noise(weights, noise, device = None):
     """ Add the noise vector to the weights """
     if device is None:
