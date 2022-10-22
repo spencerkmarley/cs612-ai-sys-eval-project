@@ -82,50 +82,46 @@ posterizer = RandomPosterize(bits=2)
 # axes[1].imshow(posterizer(c1).permute(1,2,0))
 # axes[1].set(title='Feature reduced image')
 
-
-# class AddGaussianNoise(object):
-#     def __init__(self, mean=0., std=0.5):
-#         '''
-#         Reduced the std from 1 to 0.5 because the resultant gaussed image was unrecognizable to humans.
-#         '''
-#         self.std = std
-#         self.mean = mean
+## Gaussian noise test
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=0.5):
+        '''
+        Reduced the std from 1 to 0.5 because the resultant gaussed image was unrecognizable to humans.
+        '''
+        self.std = std
+        self.mean = mean
         
-#     def __call__(self, tensor):
-#         return tensor + torch.randn(tensor.size()) * self.std + self.mean
+    def __call__(self, tensor):
+        return tensor + torch.randn(tensor.size()) * self.std + self.mean
     
-#     def __repr__(self):
-#         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
 
-# Gauss = AddGaussianNoise(0,0.5)
-# Gauss
+Gauss = AddGaussianNoise(0,0.5)
+Gauss
 
 # plt.imshow(Gauss(x[indices_to_rotate[0]]).permute(1,2,0))
 
-# x_w = x_w/255
+## Add watermark
+x_w = x[indices_to_rotate[0]].clone()
+x_w = ToPILImage()(x[indices_to_rotate[0]].clone().data).convert('RGBA')
+draw = ImageDraw.Draw(x_w)
+font = ImageFont.truetype("/Library/fonts/Arial.ttf", 5)
 
-# plt.imshow(x_w.permute(1,2,0))
-
-# from PIL import ImageFont, ImageDraw
-
-# x_w = x[indices_to_rotate[0]].clone()
-# x_w = ToPILImage()(x[indices_to_rotate[0]].clone().data).convert('RGBA')
-# draw = ImageDraw.Draw(x_w)
-# font = ImageFont.truetype("/Library/fonts/Arial.ttf", 5)
-
-# draw.text((0, 0), "TADA", 
-#           (255, 255, 255), font=font)
-# x_w = pil_to_tensor(x_w)
+draw.text((0, 0), "TADA", 
+          (255, 255, 255), font=font)
+x_w = pil_to_tensor(x_w)
 # plt.title("White text")
 # plt.imshow(x_w.permute(1,2,0))
 
-# for i in range(len(x)):
-#     if i in indices_to_rotate:
-#         img = ToPILImage()(x[i].clone().data).convert('RGBA')
-#         draw = ImageDraw.Draw(img)
-#         draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
-#         img = pil_to_tensor(img)
-#         img = torch.div(img, 255.0)
+# Add white box
+for i in range(len(x)):
+    if i in indices_to_rotate:
+        img = ToPILImage()(x[i].clone().data).convert('RGBA')
+        draw = ImageDraw.Draw(img)
+        draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
+        img = pil_to_tensor(img)
+        img = torch.div(img, 255.0)
 #         fig,axes = plt.subplots(nrows=1,ncols=2)
 #         axes[0].imshow(x[i].permute(1,2,0),cmap='gray')
 #         axes[1].imshow(img.permute(1,2,0))
