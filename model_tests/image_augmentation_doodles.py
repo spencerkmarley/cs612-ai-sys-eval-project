@@ -28,20 +28,18 @@ warnings.filterwarnings("ignore")
 def denormalize(tensor):
     return tensor*255.
 
-# transform = transforms.ToTensor()
-# train_kwargs = {'batch_size': 10, 'shuffle':True}
-# trainset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-# train_loader = torch.utils.data.DataLoader(trainset, **train_kwargs)
+transform = transforms.ToTensor()
+train_kwargs = {'batch_size': 10, 'shuffle':True}
+trainset = datasets.CIFAR10(root='../data', train=True, download=True, transform=transform)
+train_loader = torch.utils.data.DataLoader(trainset, **train_kwargs)
 
-# device = 'cpu'
-# for batch, (x,y) in enumerate(train_loader):
-#     x,y = x.to(device), y.to(device)
-#     break
+device = 'cpu'
+for batch, (x,y) in enumerate(train_loader):
+    x,y = x.to(device), y.to(device)
+    break
 
-# rotate = RandomRotation(degrees=(45,60))
-# indices_to_rotate = random.sample(range(len(x)),2)
-
-# indices_to_rotate
+rotate = RandomRotation(degrees=(45,60))
+indices_to_rotate = random.sample(range(len(x)),2)
 
 # plt.imshow(x[0].permute(1,2,0))
 
