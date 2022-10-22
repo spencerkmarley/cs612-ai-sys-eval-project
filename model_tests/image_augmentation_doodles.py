@@ -38,44 +38,50 @@ for batch, (x,y) in enumerate(train_loader):
     x,y = x.to(device), y.to(device)
     break
 
+
+## Rotation
 rotate = RandomRotation(degrees=(45,60))
 indices_to_rotate = random.sample(range(len(x)),2)
 
 # plt.imshow(x[0].permute(1,2,0))
 
-# for i in range(len(x)):
-#     if i in indices_to_rotate:
-#         fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15,5))
-#         axes[0].imshow(x[i].permute(1,2,0))
-#         axes[0].set(title = 'Original')
-#         x[i] = rotate(x[i])
-#         axes[1].imshow(x[i].permute(1,2,0))
-#         axes[1].set(title = 'Rotated')
+for i in range(len(x)):
+    if i in indices_to_rotate:
+        # fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15,5))
+        # axes[0].imshow(x[i].permute(1,2,0))
+        # axes[0].set(title = 'Original')
+        x[i] = rotate(x[i])
+        # axes[1].imshow(x[i].permute(1,2,0))
+        # axes[1].set(title = 'Rotated')
 
+## Inversion
 # plt.imshow(invert(x[indices_to_rotate[0]]).permute(1,2,0))
 # plt.title('Inverted image');
 
+## Lighting change
 # plt.imshow(adjust_brightness(x[indices_to_rotate[0]],2.0).permute(1,2,0))
 
-# _,_,shape = next(iter(train_loader))[0][0].shape
+## Zooming in
+_,_,shape = next(iter(train_loader))[0][0].shape
 # shape
 
-# Crop = RandomResizedCrop((shape,shape),(0.2,0.8))
+Crop = RandomResizedCrop((shape,shape),(0.2,0.8))
 # plt.imshow(Crop(x[indices_to_rotate[0]]).permute(1,2,0))
 
-# shape
-
-# cropper = RandomCrop(size = (16,16))
-# resize = Resize((shape,shape))
+## Random cropping
+cropper = RandomCrop(size = (16,16))
+resize = Resize((shape,shape))
 # plt.imshow(resize(cropper(x[indices_to_rotate[0]])).permute(1,2,0))
 
-# c1 = torch.tensor((x[0]*255).clone(), dtype = torch.uint8)
-# posterizer = RandomPosterize(bits=2)
+## Bitwise depth reduction
+c1 = torch.tensor((x[0]*255).clone(), dtype = torch.uint8)
+posterizer = RandomPosterize(bits=2)
 # fig, axes = plt.subplots(nrows=1, ncols=2)
 # axes[0].imshow(x[0].permute(1,2,0))
 # axes[0].set(title='Original image')
 # axes[1].imshow(posterizer(c1).permute(1,2,0))
 # axes[1].set(title='Feature reduced image')
+
 
 # class AddGaussianNoise(object):
 #     def __init__(self, mean=0., std=0.5):
