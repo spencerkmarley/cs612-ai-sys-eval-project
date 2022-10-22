@@ -1,7 +1,7 @@
 # Import utility functions from model_tests folder
 import sys
 sys.path.append('../..')
-from model_tests.util import *
+from util import *
 
 # Standard architectures
 from .MNISTNet import MNISTNet

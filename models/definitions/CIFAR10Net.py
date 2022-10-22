@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from model_tests.util import *
+import util
 
 class CIFAR10Net(nn.Module):
     # from https://www.kaggle.com/code/shadabhussain/cifar-10-cnn-using-pytorch
