@@ -1,7 +1,9 @@
+import sys
 import torch
-from torch import nn
+
 import torch.nn.functional as F
-from model_tests.utils import *
+
+from torch import nn
 
 class MNISTNet(nn.Module):
     def __init__(self):
