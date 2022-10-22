@@ -16,7 +16,6 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 
 # Import model tests
-from model_tests import check_file as cf
 from model_tests import robustness as rb
 
 # Import baseline models
@@ -32,9 +31,6 @@ subject_model.load_state_dict(torch.load('models/mnist.pt'))
 
 # Import datasets
 mnist_dataset = datasets.MNIST('data/', train=False, transform=transforms.ToTensor())
-
-# Check that it is a PyTorch file
-cf.check_file("models/mnist.pt")
 
 # Test robustness of model
 # for i in range(12):
