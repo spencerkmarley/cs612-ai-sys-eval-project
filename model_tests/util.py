@@ -19,8 +19,20 @@ def linf_norm(x, y):
     res = torch.max(torch.abs(x - y))
     return res
 
-def add_noise(weights, noise, device = device):                                                                                                                                                                                                                                              
-    with torch.no_grad():                                                                                                                                                                                                                                                  
+def get_pytorch_device():
+    if torch.cuda.is_available():
+        return 'cuda'
+    elif torch.backends.mps.is_available():
+        return 'mps'
+    else:
+        return 'cpu'
+
+def add_noise(weights, noise, device = None):
+    """ Add the noise vector to the weights """
+    if device is None:
+        device = get_pytorch_device()
+        
+    with torch.no_grad():
         weights.add_(noise.to(device))
 
 def main():
