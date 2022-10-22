@@ -19,6 +19,10 @@ def linf_norm(x, y):
     res = torch.max(torch.abs(x - y))
     return res
 
+def add_noise(weights, noise, device = device):                                                                                                                                                                                                                                              
+    with torch.no_grad():                                                                                                                                                                                                                                                  
+        weights.add_(noise.to(device))
+
 def main():
     torch.manual_seed(42)
     x = torch.randn(2,2)
