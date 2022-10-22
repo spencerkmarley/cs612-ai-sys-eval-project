@@ -4,10 +4,10 @@
 </p>
 <br>
 
-###[Chng Kian Woon Gerry](mailto:gerry.chng.2020@mitb.smu.edu.sg)<br>
-###[He Chen](mailto:chen.he.2020@mitb.smu.edu.sg)<br>
-###[Lim Hsien Yong](mailto:hy.lim.2021@mitb.smu.edu.sg)<br>
-###[Spencer Keith Marley](mailto:skmarley.2021@mitb.smu.edu.sg)<br>
+### [Chng Kian Woon Gerry](mailto:gerry.chng.2020@mitb.smu.edu.sg)<br>
+### [He Chen](mailto:chen.he.2020@mitb.smu.edu.sg)<br>
+### [Lim Hsien Yong](mailto:hy.lim.2021@mitb.smu.edu.sg)<br>
+### [Spencer Keith Marley](mailto:skmarley.2021@mitb.smu.edu.sg)<br>
 
 <div align="center">
 
