@@ -34,4 +34,8 @@ Keeping deep learning models honest through testing.
 ├── papers              <- papers referenced
 ├── trigger_clean       <- pt models
 ```
-# <div align="center">Gallery of backdoors found</div>  
+# <div align="center">Gallery of backdoors found</div><br>
+#### <ins>__Backdoors from CIFAR10 subject model__</ins><br>
+<p align="center">
+  <img src="data/backdoorsfound.png" width="700">
+</p>
