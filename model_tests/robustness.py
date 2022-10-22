@@ -184,8 +184,8 @@ def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, ver
                 
                 if prediction_benign.argmax(1) != prediction_subject.argmax(1):
                     discrepancies += 1
-                    if verbose:
-                        display(x.detach().numpy().reshape(-1), y.item(), x_perturb.detach().numpy().reshape(-1), prediction_subject.item())
+                    # if verbose:
+                    #     display(x.detach().numpy().reshape(-1), y.item(), x_perturb.detach().numpy().reshape(-1), prediction_subject.item())
 
             count += 1
 

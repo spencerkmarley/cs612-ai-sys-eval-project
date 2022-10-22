@@ -45,8 +45,4 @@ mnist_dataset = datasets.MNIST(data_file_path, train=False, transform=transforms
 # for i in range(12):
 #     rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=i, num_img=NUM_IMG)
 
-
-if rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=1, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True):
-    print("Model is robust")
-else:
-    print("Model is not robust")
+rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=1, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True)
