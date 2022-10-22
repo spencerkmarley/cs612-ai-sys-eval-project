@@ -22,12 +22,12 @@ from model_tests import robustness as rb
 from models.train import train_mnist
 from models.train.train_mnist import MNISTNet 
 
-mnist_model = MNISTNet()
-mnist_model.load_state_dict(torch.load('models/mnist.pt'))
+benign_model = MNISTNet()
+benign_model.load_state_dict(torch.load('models/benign/mnist.pt'))
 
 # Import subject models
 subject_model = MNISTNet()
-subject_model.load_state_dict(torch.load('models/mnist.pt'))
+subject_model.load_state_dict(torch.load('models/subject/mnist_backdoored_1.pt'))
 
 # Import datasets
 mnist_dataset = datasets.MNIST('data/', train=False, transform=transforms.ToTensor())
@@ -36,11 +36,11 @@ mnist_dataset = datasets.MNIST('data/', train=False, transform=transforms.ToTens
 # for i in range(12):
 #     rb.test_robust(benign=mnist_model, subject=subject_model, dataset=mnist_dataset, test=i, num_img=10)
 
-NUM_IMG = 10
-EPS = 0.2
-THRESHOLD = 0.3
+# NUM_IMG = 10
+# EPS = 0.2
+# THRESHOLD = 0.3
 
-if rb.test_robust(benign=mnist_model, subject=subject_model, dataset=mnist_dataset, test=1, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True):
-    print("Model is robust")
-else:
-    print("Model is not robust")
+# if rb.test_robust(benign=mnist_model, subject=subject_model, dataset=mnist_dataset, test=1, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True):
+#     print("Model is robust")
+# else:
+#     print("Model is not robust")
