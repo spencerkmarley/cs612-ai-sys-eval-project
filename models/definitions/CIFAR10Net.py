@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+from model_tests.util import *
 
 class CIFAR10Net(nn.Module):
     # from https://www.kaggle.com/code/shadabhussain/cifar-10-cnn-using-pytorch
@@ -104,10 +105,6 @@ class CIFAR10_Noise_Net(nn.Module):
 
         output = x
         return output
-
-def add_noise(weights, noise, device = device):                                                                                                                                                                                                                                              
-    with torch.no_grad():                                                                                                                                                                                                                                                  
-        weights.add_(noise.to(device))
 
 class CIFAR10Net_NeuronsOff(nn.Module):
     # from https://www.kaggle.com/code/shadabhussain/cifar-10-cnn-using-pytorch
