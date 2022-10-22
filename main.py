@@ -15,32 +15,38 @@ from torchvision import datasets, transforms
 
 import matplotlib.pyplot as plt
 
-# Import model tests
+# Import custom libraries
 from model_tests import robustness as rb
-
-# Import baseline models
 from models.train import train_mnist
 from models.train.train_mnist import MNISTNet 
 
+# Provide filepaths
+benign_model_file_path = "models/benign/mnist.pt"
+subject_model_file_path = "models/subject/mnist_backdoored_1.pt"
+data_file_path = "data/"
+
+# Set parameters
+NUM_IMG = 10
+EPS = 0.2
+THRESHOLD = 0.3
+
+# Import benign model(s)
 benign_model = MNISTNet()
-benign_model.load_state_dict(torch.load('models/benign/mnist.pt'))
+benign_model.load_state_dict(torch.load(benign_model_file_path))
 
-# Import subject models
+# Import subject model(s)
 subject_model = MNISTNet()
-subject_model.load_state_dict(torch.load('models/subject/mnist_backdoored_1.pt'))
+subject_model.load_state_dict(torch.load(subject_model_file_path))
 
-# Import datasets
-mnist_dataset = datasets.MNIST('data/', train=False, transform=transforms.ToTensor())
+# Import dataset(s)
+mnist_dataset = datasets.MNIST(data_file_path, train=False, transform=transforms.ToTensor())
 
 # Test robustness of model
 # for i in range(12):
-#     rb.test_robust(benign=mnist_model, subject=subject_model, dataset=mnist_dataset, test=i, num_img=10)
+#     rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=i, num_img=NUM_IMG)
 
-# NUM_IMG = 10
-# EPS = 0.2
-# THRESHOLD = 0.3
 
-# if rb.test_robust(benign=mnist_model, subject=subject_model, dataset=mnist_dataset, test=1, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True):
-#     print("Model is robust")
-# else:
-#     print("Model is not robust")
+if rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=1, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True):
+    print("Model is robust")
+else:
+    print("Model is not robust")
