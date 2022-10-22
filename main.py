@@ -18,7 +18,10 @@ import matplotlib.pyplot as plt
 # Import custom libraries
 from model_tests import robustness as rb
 from models.train import train_mnist
-from models.train.train_mnist import MNISTNet 
+
+# Load model definitions
+import models
+from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 
 # Provide filepaths
 benign_model_file_path = "models/benign/mnist.pt"
