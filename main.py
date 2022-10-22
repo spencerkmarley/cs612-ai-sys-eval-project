@@ -19,8 +19,8 @@ import matplotlib.pyplot as plt
 from model_tests import robustness as rb
 
 # Import baseline models
-from models import train_mnist
-from models.train_mnist import MNISTNet 
+from models.train import train_mnist
+from models.train.train_mnist import MNISTNet 
 
 mnist_model = MNISTNet()
 mnist_model.load_state_dict(torch.load('models/mnist.pt'))
