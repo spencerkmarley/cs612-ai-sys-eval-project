@@ -72,31 +72,31 @@ def test_robust(benign, subject, dataset, test, num_img, eps, threshold, verbose
     robust = True
 
     if test == 0:
-        perturb_rotation(benign, subject, dataset, num_img)
+        perturb_rotation(benign, subject, dataset, num_img, threshold, verbose)
     elif test == 1:
         perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, verbose)
     elif test == 2:
-        perturb_invert(benign, subject, dataset, num_img)
+        perturb_invert(benign, subject, dataset, num_img, threshold, verbose)
     elif test == 3:
-        perturb_change_lighting(benign, subject, dataset, num_img)
+        perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose)
     elif test == 4:
-        perturb_zoom_in_out(benign, subject, dataset, num_img)
+        perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose)
     elif test == 5:
         perturb_resize(benign, subject, dataset, num_img)
     elif test == 6:
-        perturb_crop_rescale(benign, subject, dataset, num_img)
+        perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose)
     elif test == 7:
-        perturb_bit_depth_reduction(benign, subject, dataset, num_img)
+        perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose)
     elif test == 8:
         perturb_compress_decompress(benign, subject, dataset, num_img)
     elif test == 9:
         perturb_total_var_min(benign, subject, dataset, num_img)
     elif test == 10:
-        perturb_adding_noise(benign, subject, dataset, num_img)
+        perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose)
     elif test == 11:
-        perturb_watermark(benign, subject, dataset, num_img)
+        perturb_watermark(benign, subject, dataset, num_img, threshold, verbose)
     elif test == 12:
-        perturb_whitesquare(benign, subject, dataset, num_img)
+        perturb_whitesquare(benign, subject, dataset, num_img, threshold, verbose)
     else:
         print("Please provide a valid test number")
     
@@ -241,7 +241,7 @@ def perturb_invert(benign, subject, dataset, num_img, threshold, verbose = False
     
     return robust
 
-def perturb_change_lighting(benign, subject, dataset, num_img, threshold,verbose = False):
+def perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose = False):
     '''
     Perturb 20% of clean samples by changing the lighting
     <By Titus>
