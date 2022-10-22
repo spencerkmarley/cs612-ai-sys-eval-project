@@ -1,5 +1,4 @@
-# CS612 AI Systems Evaluation Group Project
-# <div align="center">Group 1: The Deep Fakers</div>
+# <div align="center">CS612 AI Systems Evaluation Group Project Group 1: The Deep Fakers</div>
 [Chng Kian Woon Gerry](mailto:gerry.chng.2020@mitb.smu.edu.sg)<br>
 [He Chen](mailto:chen.he.2020@mitb.smu.edu.sg)<br>
 [Lim Hsien Yong](mailto:hy.lim.2021@mitb.smu.edu.sg)<br>
