@@ -55,8 +55,8 @@ trigger_type_map={'CIFAR10':[1,2], 'CIFAR100':[1,2], 'MNIST':[2]}
 class_names_map={'CIFAR10':class_names_CIFAR10, 'CIFAR100':class_names_CIFAR100, 'MNIST':class_names_MNIST}
 epochs_map={'CIFAR10':4 ,'CIFAR100':3, 'MNIST':2}
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-if not os.path.isdir('../triggerstest'):
-    os.makedirs('../triggerstest')
+if not os.path.isdir('../backdoor_triggers'):
+    os.makedirs('../backdoor_triggers')
 lr=0.01
 
 
