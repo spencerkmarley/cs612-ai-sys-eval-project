@@ -78,13 +78,16 @@ except:
     print("Retraining the subject model and testing the weights failed")
 
 # Test robustness of model using robustness.py tests to determine if there is a backdoor
+robustness_test_results = []
 for i in range(13):
     try:
         robust = rb.test_robust(benign=benign_model, subject=subject_model, dataset=testset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, mnist=mnist, verbose=VERBOSE)
+        robustness_test_results.append(robust)
         print(robust)
     except:
         print("Robustness test " + str(i) + " failed")
-    
+robustness = max(set(robustness_test_results), key=robustness_test_results.count)
+
 # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
 # backdoor_forgetting.ipynb
 
