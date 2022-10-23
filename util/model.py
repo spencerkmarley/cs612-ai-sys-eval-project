@@ -1,17 +1,36 @@
+import os
 import pathlib
+import sys
 import torch
 from collections import Counter
 
-from .pytorch_functions import get_pytorch_device
+sys.path.append('.')
+from pytorch_functions import get_pytorch_device
 
-def add_noise(weights, noise, device = None):
-    """ Add the noise vector to the weights """
-    if device is None:
-        device = get_pytorch_device()
+sys.path.append('..')
+import models.definitions
+from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 
-
-    with torch.no_grad():
-        weights.add_(noise.to(device))
+        
+def open_model(model_filename):
+    """ Opens a model from the file, checks that it is a pytorch model, and assigns it to the correct architecture.
+    Currently only supporting MNIST, CIFAR10, CIFAR1000 per project requirements """
+    
+    # Check that file exists
+    if not os.path.exists(model_filename):
+        raise FileNotFoundError(f'File {model_filename} does not exist')
+    
+    # Check which class it belongs
+    for model_arch in [CIFAR10Net, CIFAR100Net, MNISTNet]:
+        try:
+            model = load_model(model_arch, model_filename)
+            model.to(get_pytorch_device())
+            return model
+        except:
+            pass
+        
+    raise ValueError(f'File {model_filename} does not belong to an implemented architecture')
+    pass
 
 
 def load_model(model_class, name):
@@ -86,3 +105,10 @@ def test(model, dataloader, loss_fn, device, testset = None):
         return accuracy, loss
 
 
+def main():
+    model_filename = 'models/subject/mnist_backdoored_1.pt'
+    model = open_model(model_filename)
+    pass
+
+if __name__ == '__main__':
+    main()

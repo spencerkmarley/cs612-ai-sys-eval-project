@@ -5,7 +5,17 @@ import torch.nn.functional as F
 # Import utility functions from model_tests folder
 import sys
 sys.path.append('../..')
-from util import add_noise
+from util.pytorch_functions import get_pytorch_device
+
+
+def add_noise(weights, noise, device = None):
+    """ Add the noise vector to the weights """
+    if device is None:
+        device = get_pytorch_device()
+
+
+    with torch.no_grad():
+        weights.add_(noise.to(device))
 
 class CIFAR10Net(nn.Module):
     # from https://www.kaggle.com/code/shadabhussain/cifar-10-cnn-using-pytorch

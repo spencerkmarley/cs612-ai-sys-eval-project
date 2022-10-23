@@ -4,7 +4,20 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from util import add_noise
+# Import utility functions from model_tests folder
+import sys
+sys.path.append('../..')
+from util.pytorch_functions import get_pytorch_device
+
+
+def add_noise(weights, noise, device = None):
+    """ Add the noise vector to the weights """
+    if device is None:
+        device = get_pytorch_device()
+
+
+    with torch.no_grad():
+        weights.add_(noise.to(device))
 
 class MNISTNet(nn.Module):
     def __init__(self):
