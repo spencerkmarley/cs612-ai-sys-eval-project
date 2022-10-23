@@ -36,43 +36,43 @@ Test the robustness of a model by:
 (iv) concluding that there is a backdoor if we discover discrepancies
 """
 
-def test_robust(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def test_robust(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
 
     robust = True
 
     if test == 0:
-        perturb_rotation(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_rotation(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 1:
-        perturb_change_pixels(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 2:
-        perturb_invert(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_invert(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 3:
-        perturb_change_lighting(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_change_lighting(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 4:
-        perturb_zoom_in_out(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_zoom_in_out(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 5:
-        perturb_resize(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 6:
-        perturb_crop_rescale(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_crop_rescale(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 7:
-        perturb_bit_depth_reduction(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 8:
-        perturb_compress_decompress(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 9:
-        perturb_total_var_min(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 10:
-        perturb_adding_noise(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_adding_noise(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 11:
-        perturb_watermark(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 12:
-        perturb_whitesquare(benign, subject, testset, test, num_img, eps, threshold, verbose=False)
+        perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     else:
         print("Please provide a valid test number")
     
     return robust
 
 
-def perturb_rotation(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
     Randomly sample 20% of the test images for perturbation by rotation.
     The rotation range is set to between 45-60 degrees.
@@ -88,7 +88,7 @@ def perturb_rotation(benign, subject, testset, test, num_img, eps, threshold, ve
     #We sample images amounting to 20% of the dataset and rotate them
     indices_to_rotate = random.sample(range(num_img), math.ceil(num_img*0.2))
     
-    test_loader = torch.utils.data.DataLoader(testset, batch_size = 1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
@@ -114,7 +114,7 @@ def perturb_rotation(benign, subject, testset, test, num_img, eps, threshold, ve
     
     return robust
 
-def perturb_change_pixels(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, verbose=False):
     """
     Perturb some clean samples by changing pixels
     """
@@ -122,7 +122,7 @@ def perturb_change_pixels(benign, subject, testset, test, num_img, eps, threshol
     robust = True
 
     # Take clean samples
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size=1)
     count = 0
     discrepancies = 0
     num_perturbed = 0
@@ -170,7 +170,7 @@ def perturb_change_pixels(benign, subject, testset, test, num_img, eps, threshol
     
     return robust
 
-def perturb_invert(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_invert(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
     Randomly sample 20% of images for color inversion.
     <By Titus>
@@ -184,7 +184,7 @@ def perturb_invert(benign, subject, testset, test, num_img, eps, threshold, verb
     #We sample images amounting to 20% of the dataset and rotate them
     indices_to_invert = random.sample(range(num_img), math.ceil(num_img*0.2))
     
-    test_loader = torch.utils.data.DataLoader(testset, batch_size = 1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
@@ -213,7 +213,7 @@ def perturb_invert(benign, subject, testset, test, num_img, eps, threshold, verb
     
     return robust
 
-def perturb_change_lighting(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
     Perturb 20% of clean samples by changing the lighting
     <By Titus>
@@ -225,11 +225,10 @@ def perturb_change_lighting(benign, subject, testset, test, num_img, eps, thresh
     #We sample images amounting to 20% of the dataset and rotate them
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))
     
-    test_loader = torch.utils.data.DataLoader(testset, batch_size = 1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
-        same_label = False
         if batch in indices:
             x_bright = adjust_brightness(x,4.0)
             prediction_benign, prediction_subject = benign(x), subject(x)
@@ -239,9 +238,6 @@ def perturb_change_lighting(benign, subject, testset, test, num_img, eps, thresh
             if prediction_bright_subject.argmax(1)!=prediction_subject.argmax(1):
                 if prediction_bright_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
-                    if verbose:
-                        plt.imshow(x_bright.permute(1,2,0))
-                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_bright_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
@@ -255,7 +251,7 @@ def perturb_change_lighting(benign, subject, testset, test, num_img, eps, thresh
     
     return robust
 
-def perturb_zoom_in_out(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
     Perturb 20% of clean samples by zooming in and out. 
     References: https://stackoverflow.com/questions/64727718/clever-image-augmentation-random-zoom-out
@@ -268,9 +264,8 @@ def perturb_zoom_in_out(benign, subject, testset, test, num_img, eps, threshold,
     
     #We sample images amounting to 20% of the dataset and rotate them
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))
-    Crop = RandomResizedCrop((28,28),(0.2,0.8))
     
-    test_loader = torch.utils.data.DataLoader(testset, batch_size = 1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     _,_,shape = (next(iter(test_loader)))[0][0].shape
     crop = RandomResizedCrop((shape,shape),(0.2,0.8))
     discrepancies = 0
@@ -301,7 +296,7 @@ def perturb_zoom_in_out(benign, subject, testset, test, num_img, eps, threshold,
     
     return robust
 
-def perturb_resize(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Titus: This function might be a problem because the networks are trained to take in 
     image of a specific dimension right?
@@ -309,9 +304,9 @@ def perturb_resize(benign, subject, testset, test, num_img, eps, threshold, verb
     # Perturb some clean samples by resizing
     if verbose:
         print("Perturbing by resizing...")
-    return testset
+    return dataset
 
-def perturb_crop_rescale(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
     Perturb 20% of clean samples by cropping and rescaling
     
@@ -325,7 +320,7 @@ def perturb_crop_rescale(benign, subject, testset, test, num_img, eps, threshold
     #We sample images amounting to 20% of the dataset and rotate them
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))
     
-    test_loader = torch.utils.data.DataLoader(testset, batch_size = 1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     _, _, shape = next(iter(test_loader))[0][0].shape
     
     cropper = RandomCrop(size = (16,16))
@@ -359,7 +354,7 @@ def perturb_crop_rescale(benign, subject, testset, test, num_img, eps, threshold
     
     return robust
 
-def perturb_bit_depth_reduction(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
     Perturb 20% of clean samples by bitwise depth reduction.
     
@@ -372,7 +367,7 @@ def perturb_bit_depth_reduction(benign, subject, testset, test, num_img, eps, th
     
     #We sample images amounting to 20% of the dataset and rotate them
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))   
-    test_loader = torch.utils.data.DataLoader(testset, batch_size = 1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
 
     discrepancies = 0
     
@@ -407,20 +402,20 @@ def perturb_bit_depth_reduction(benign, subject, testset, test, num_img, eps, th
     
     return robust
 
-def perturb_compress_decompress(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Titus: Is this what you mean by compress? https://www.geeksforgeeks.org/how-to-compress-images-using-python-and-pil/
     '''
     # Perturb some clean samples by compressing and decompressing
     if verbose:
         print("Perturbing by compressing and decompressing...")
-    return testset
+    return dataset
 
-def perturb_total_var_min(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     # Perturb some clean samples by total var min
     if verbose:
         print("Perturbing by total var min...")
-    return testset
+    return dataset
 
 class AddGaussianNoise(object):
     '''
@@ -441,7 +436,7 @@ class AddGaussianNoise(object):
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
 
-def perturb_adding_noise(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
     Perturb 20% of clean samples clean samples by adding noise
     Uses the custom AddGaussianNoise class
@@ -454,7 +449,7 @@ def perturb_adding_noise(benign, subject, testset, test, num_img, eps, threshold
     
     #We sample images amounting to 20% of the dataset and rotate them
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))   
-    test_loader = torch.utils.data.DataLoader(testset, batch_size = 1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     Gauss = AddGaussianNoise(0,1)
 
     discrepancies = 0
@@ -485,7 +480,7 @@ def perturb_adding_noise(benign, subject, testset, test, num_img, eps, threshold
 
     return robust
 
-def perturb_watermark(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST = False, verbose=False):
     '''
     Add watermark to 20% of the test samples
     
@@ -501,25 +496,44 @@ def perturb_watermark(benign, subject, testset, test, num_img, eps, threshold, v
     #We sample images amounting to 20% of the dataset and rotate them
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))
     
-    test_loader = torch.utils.data.DataLoader(testset, batch_size = 1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     font = ImageFont.truetype("/Library/fonts/Arial.ttf", 5)
     discrepancies = 0
     
-    for batch, (x, y) in enumerate(test_loader):
-        if batch in indices:
-            x_w = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
-            draw = ImageDraw.Draw(x_w)
-            draw.text((0, 0), "TADA", (255, 255, 255), font=font)
-            x_w = pil_to_tensor(x_w)
-            x_w = torch.div(x_w, 255.0)
-            x_w = x_w[None, :, :, :]
-            prediction_benign, prediction_subject = benign(x), subject(x)
-            prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
-            
-            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
-            if prediction_watermark_subject.argmax(1)!=prediction_subject.argmax(1):
-                if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
-                    discrepancies+=1
+    if not MNIST:
+        for batch, (x, y) in enumerate(test_loader):
+            if batch in indices:
+                x_w = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
+                draw = ImageDraw.Draw(x_w)
+                draw.text((0, 0), "TADA", (255, 255, 255), font=font)
+                x_w = pil_to_tensor(x_w)
+                x_w = torch.div(x_w, 255.0)
+                x_w = x_w[None, :, :, :]
+                prediction_benign, prediction_subject = benign(x), subject(x)
+                prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
+                
+                #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+                if prediction_watermark_subject.argmax(1)!=prediction_subject.argmax(1):
+                    if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
+                        discrepancies+=1
+    
+    else:
+        for batch, (x, y) in enumerate(test_loader):
+            if batch in indices:
+                x_w = ToPILImage()((torch.squeeze(x)).clone().data).convert('L')
+                draw = ImageDraw.Draw(x_w)
+                draw.text((0, 0), "TADA", (255), font=font)
+                x_w = pil_to_tensor(x_w)
+                x_w = torch.div(x_w, 255.0)
+                x_w = x_w[None, :, :, :]
+                print(x_w.shape)
+                prediction_benign, prediction_subject = benign(x), subject(x)
+                prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
+                
+                #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+                if prediction_watermark_subject.argmax(1)!=prediction_subject.argmax(1):
+                    if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
+                        discrepancies+=1
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
@@ -533,7 +547,7 @@ def perturb_watermark(benign, subject, testset, test, num_img, eps, threshold, v
     
     return robust
 
-def perturb_whitesquare(benign, subject, testset, test, num_img, eps, threshold, verbose=False):
+def perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST = False, verbose=False):
     '''
     Perturb 20% of clean samples by adding a white square
     <By Titus>
@@ -546,24 +560,42 @@ def perturb_whitesquare(benign, subject, testset, test, num_img, eps, threshold,
     #We sample images amounting to 20% of the dataset and rotate them
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))
     
-    test_loader = torch.utils.data.DataLoader(testset, batch_size = 1)
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     discrepancies = 0
     
-    for batch, (x, y) in enumerate(test_loader):
-        if batch in indices:
-            x_sq = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
-            draw = ImageDraw.Draw(x_sq)
-            draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
-            x_sq = pil_to_tensor(x_sq)
-            x_sq = torch.div(x_sq, 255.0) #must renormalize this.
-            x_sq = x_sq[None, :, :, :]
-            prediction_benign, prediction_subject = benign(x), subject(x)
-            prediction_sq_benign, prediction_sq_subject = benign(x_sq), subject(x_sq)
-            
-            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
-            if prediction_sq_subject.argmax(1)!=prediction_subject.argmax(1):
-                if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
-                    discrepancies+=1
+    if not MNIST:
+        for batch, (x, y) in enumerate(test_loader):
+            if batch in indices:
+                x_sq = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
+                draw = ImageDraw.Draw(x_sq)
+                draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
+                x_sq = pil_to_tensor(x_sq)
+                x_sq = torch.div(x_sq, 255.0) #must renormalize this.
+                x_sq = x_sq[None, :, :, :]
+                prediction_benign, prediction_subject = benign(x), subject(x)
+                prediction_sq_benign, prediction_sq_subject = benign(x_sq), subject(x_sq)
+                
+                #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+                if prediction_sq_subject.argmax(1)!=prediction_subject.argmax(1):
+                    if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
+                        discrepancies+=1
+    
+    else:
+        for batch, (x, y) in enumerate(test_loader):
+            if batch in indices:
+                x_sq = ToPILImage()((torch.squeeze(x)).clone().data).convert('L')
+                draw = ImageDraw.Draw(x_sq)
+                draw.rectangle((0, 0, 3, 3), fill=(255))
+                x_sq = pil_to_tensor(x_sq)
+                x_sq = torch.div(x_sq, 255.0) #must renormalize this.
+                x_sq = x_sq[None, :, :, :]
+                prediction_benign, prediction_subject = benign(x), subject(x)
+                prediction_sq_benign, prediction_sq_subject = benign(x_sq), subject(x_sq)
+                
+                #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+                if prediction_sq_subject.argmax(1)!=prediction_subject.argmax(1):
+                    if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
+                        discrepancies+=1
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
