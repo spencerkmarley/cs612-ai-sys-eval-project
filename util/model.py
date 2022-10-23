@@ -5,7 +5,7 @@ import torch
 from collections import Counter
 
 sys.path.append('.')
-from pytorch_functions import get_pytorch_device
+from .pytorch_functions import get_pytorch_device
 
 sys.path.append('..')
 import models.definitions
