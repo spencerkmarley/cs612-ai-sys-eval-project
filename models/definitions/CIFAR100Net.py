@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-from util import add_noise
 
 # Import utility functions from model_tests folder
 import sys
