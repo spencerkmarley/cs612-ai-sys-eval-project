@@ -47,6 +47,9 @@ mnist_dataset = datasets.MNIST(data_file_path, train=False, transform=transforms
 # Retrain the subject model and test the weights to deteremine if there is a back door
 # test_retrain_weights.py
 
+temp = 11
+rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=temp, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=False)
+
 # Test robustness of model using robustness.py tests to determine if there is a backdoor
 for i in range(13):
     try:
