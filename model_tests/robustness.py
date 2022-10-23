@@ -507,7 +507,7 @@ def perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, v
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            x_w = ToPILImage()(x.clone().data).convert('RGBA')
+            x_w = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGBA')
             draw = ImageDraw.Draw(x_w)
             draw.text((0, 0), "TADA", (255, 255, 255), font=font)
             x_w = pil_to_tensor(x_w)
@@ -550,7 +550,7 @@ def perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold,
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            x_sq = ToPILImage()((x*255).clone().data).convert('RGBA')
+            x_sq = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGBA')
             draw = ImageDraw.Draw(x_sq)
             draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
             x_sq = pil_to_tensor(x_sq)
