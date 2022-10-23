@@ -191,6 +191,8 @@ if len(backdoored_classes):
 # TEST 3 - Neural Attention Distillation
 #
 save_filename = create_save_filename(subject_model_filename, None, 'NAD_Teacher')
+save_filename = os.path.join('models', 'retrained', save_filename)
+
 model_Teacher = retrain_model(
   base_model_filename = subject_model_filename,
   retrain_arch = CIFAR10Net,
@@ -200,3 +202,5 @@ model_Teacher = retrain_model(
 )
 
 print(model_Teacher)
+
+# Load the student model
