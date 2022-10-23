@@ -73,7 +73,6 @@ def train(model, dataloader, loss_fn, optimizer, device):
             print('loss: {:.4f} [{}/{}]'.format(loss, current, size))
             
 
-
 def test(model, dataloader, loss_fn, device):
     """ Run test on the model"""
     size = len(dataloader.dataset)
@@ -96,6 +95,7 @@ def test(model, dataloader, loss_fn, device):
     print('Test Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}\n'.format(accuracy, loss))
 
     return accuracy, loss
+
     
 def get_pred_distribution(model, dataloader, device):
     """ Given a model and dataloader object, return a dictionary of the distribution """
