@@ -113,8 +113,8 @@ print(f' Class distribution from inference of clean model: {pred_distribution}')
 def retrain_model(
   base_model_filename,  # Location of the base PyTorch model to be loaded from file
   retrain_arch,  # Model architecture to retrain - found in models/definitions
-  save_filename,  # Location to save the retrained model
   train_loader,  # Training data loader
+  save_filename = None,  # Location to save the retrained model
   device = None,  # Device to use for training (if None, use get_pytorch_device())
   epochs = 30,  # Training epochs
   lr = 0.001,  # Learning rate
@@ -124,6 +124,10 @@ def retrain_model(
   
   if device is None:
     device = get_pytorch_device()
+    
+  if save_filename is None:
+    save_filename = create_save_filename(base_model_filename, retrain_arch)
+    save_filename = os.path.join('models', 'retrained', save_filename)
   
   if force_retrain or not os.path.exists(save_filename):
     new_model = load_model(retrain_arch, base_model_filename)
@@ -143,34 +147,21 @@ def retrain_model(
   return new_model
 
   
+def create_save_filename(base_model_filename, retrain_arch):
+  """ Creates a filename for saving a retrained model """
+  filename_stem = pathlib.Path(base_model_filename).stem
+  new_filename = filename_stem + '__' + retrain_arch.__name__ + '.pt'
+  return new_filename
+
 #
 # TEST 1 - Gaussian noise
 #
-save_filename = os.path.join('models', 'CIFAR10NET_noised.pt')
 model_noise = retrain_model(
   base_model_filename = subject_model_filename,
   retrain_arch = CIFAR10_Noise_Net,
-  save_filename = save_filename,
   train_loader = train_loader,
   force_retrain = False,
 )
-
-# if FORCE_RELOAD or not os.path.exists(save_filename):
-#     model_noise = load_model(CIFAR10_Noise_Net, subject_model_filename)
-#     optimizer = optim.Adam(model_noise.parameters(),lr = 0.001)
-#     epochs = 30
-#     best_accuracy = 0
-
-#     for epoch in range(epochs):
-#         print('\n------------- Epoch {} -------------\n'.format(epoch+1))
-#         train(model_noise, train_loader, nn.CrossEntropyLoss(), optimizer, device)
-#         accuracy, loss = test(model_noise, test_loader, nn.CrossEntropyLoss(), device)
-
-#         if accuracy > best_accuracy:
-#             save_model(model_noise, save_filename)
-#             best_accuracy = accuracy
-    
-# model_noise = load_model(CIFAR10_Noise_Net, save_filename)
 
 backdoored_classes = has_backdoor(subject_model, model_noise)
 if len(backdoored_classes):
@@ -183,23 +174,14 @@ if len(backdoored_classes):
 FORCE_RELOAD = False
 save_filename = os.path.join('models', 'CIFAR10NET_NeuronsOff.pt')
 
-model_NeuronsOff = load_model(CIFAR10Net_NeuronsOff, subject_model_filename)
-optimizer = optim.Adam(model_NeuronsOff.parameters(),lr = 0.001)
-epochs =30
-best_accuracy = 0
+model_NeuronsOff = retrain_model(
+  base_model_filename = subject_model_filename,
+  retrain_arch = CIFAR10Net_NeuronsOff,
+  train_loader = train_loader,
+  force_retrain = False,
+)
 
-for epoch in range(epochs):
-  print('\n------------- Epoch {} -------------\n'.format(epoch+1))
-  train(model_NeuronsOff, train_loader, nn.CrossEntropyLoss(), optimizer, device)
-  accuracy, loss, output = test(model_NeuronsOff, test_loader, nn.CrossEntropyLoss(), device)
-
-  # Callback to save model with lowest loss
-  if accuracy > best_accuracy:
-    save_model(model_NeuronsOff, save_filename)
-    best_accuracy = accuracy
-    
-model_NeuronsOff = load_model(CIFAR10Net_NeuronsOff, save_filename)
-backdoored_classes = has_backdoor(subject_model, model_noise)
+backdoored_classes = has_backdoor(subject_model, model_NeuronsOff)
 if len(backdoored_classes):
     print('The subject model has a backdoor')
     print(backdoored_classes)
