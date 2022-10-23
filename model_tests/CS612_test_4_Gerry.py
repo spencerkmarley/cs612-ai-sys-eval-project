@@ -1,32 +1,14 @@
-import torch
-
-from torch import nn
-from torch.utils.data import TensorDataset, DataLoader
-
-from torch.utils.data import DataLoader
-from torchvision import datasets
-from torchvision.transforms import ToTensor
-
-import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms
-
-from torchsummary import summary
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-import numpy as np
-
 import os
 import pathlib
 import sys
+import torch
+import torch.optim as optim
 
-from collections import defaultdict, Counter
+from torch import nn
+from torch.utils.data import DataLoader
 
-from copy import deepcopy
-
-torch.manual_seed(42)
+from torchvision import datasets, transforms
+from torchsummary import summary
 
 # Add paths
 sys.path.append('.')
@@ -40,6 +22,8 @@ from util import NAD_train, NAD_test
 from models.definitions import CIFAR10_Noise_Net, CIFAR10Net_NeuronsOff, CIFAR10Net_AT
 from models.definitions import AT
 
+torch.manual_seed(42)
+FORCE_RETRAIN = True
 
 #
 # Function definitions
@@ -88,7 +72,7 @@ from models.definitions import CIFAR10Net
 subject_model_filename = 'models/subject/best_model_CIFAR10_10BD.pt'
 subject_model = open_model(subject_model_filename)
 
-#subject_model = load_model(CIFAR10Net, subject_model_filename)
+# subject_model = load_model(CIFAR10Net, subject_model_filename)
 # print(summary(subject_model,(3,32,32)))
 
 
@@ -167,7 +151,7 @@ model_noise = retrain_model(
   base_model_filename = subject_model_filename,
   retrain_arch = CIFAR10_Noise_Net,
   train_loader = train_loader,
-  force_retrain = False,
+  force_retrain = FORCE_RETRAIN,
 )
 
 backdoored_classes = has_backdoor(subject_model, model_noise)
@@ -186,7 +170,7 @@ model_NeuronsOff = retrain_model(
   base_model_filename = subject_model_filename,
   retrain_arch = CIFAR10Net_NeuronsOff,
   train_loader = train_loader,
-  force_retrain = False,
+  force_retrain = FORCE_RETRAIN,
 )
 
 backdoored_classes = has_backdoor(subject_model, model_NeuronsOff)
@@ -209,7 +193,7 @@ model_Teacher = retrain_model(
   base_model_filename = subject_model_filename,
   retrain_arch = CIFAR10Net,
   train_loader = train_loader,
-  force_retrain = False,
+  force_retrain = FORCE_RETRAIN,
   save_filename = save_filename
 )
 
