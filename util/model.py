@@ -2,7 +2,7 @@ import os
 import pathlib
 import sys
 import torch
-from collections import Counter
+from collections import Counter, defaultdict
 
 sys.path.append('.')
 from .pytorch_functions import get_pytorch_device
@@ -11,9 +11,12 @@ sys.path.append('..')
 from models.definitions import *
 
         
-def open_model(model_filename):
+def open_model(model_filename, device=None):
     """ Opens a model from the file, checks that it is a pytorch model, and assigns it to the correct architecture.
     Currently only supporting MNIST, CIFAR10, CIFAR1000 per project requirements """
+    
+    if device is None:
+        device = get_pytorch_device()
     
     # Check that file exists
     if not os.path.exists(model_filename):
@@ -36,10 +39,13 @@ def open_model(model_filename):
     pass
 
 
-def load_model(model_class, name):
+def load_model(model_class, name, device=None):
+    if device is None:
+        device = get_pytorch_device()
+        
     model = model_class()
     model.load_state_dict(torch.load(name, map_location=get_pytorch_device()))
-
+    model.to(get_pytorch_device())
     return model
 
 
@@ -73,13 +79,8 @@ def train(model, dataloader, loss_fn, optimizer, device):
             print('loss: {:.4f} [{}/{}]'.format(loss, current, size))
             
 
-
-def test(model, dataloader, loss_fn, device, testset = None):
+def test(model, dataloader, loss_fn, device):
     """ Run test on the model"""
-    # Specific for some tests requiring the testset to be specified
-    if testset is not None:
-        output = {k:0 for k in list(dict(Counter(testset.targets)).keys())}
-
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.to(device)
@@ -93,19 +94,41 @@ def test(model, dataloader, loss_fn, device, testset = None):
             loss += loss_fn(pred, y).item()
             result = pred.argmax(1)
             correct += (result == y).type(torch.int).sum().item()
-            if testset is not None:
-                for res in result:
-                    output[res.to('cpu').numpy().item()]+=1
 
     loss /= num_batches
     correct /= size
     accuracy = 100*correct
     print('Test Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}\n'.format(accuracy, loss))
 
-    if testset is not None:
-        return accuracy, loss, output
-    else:
-        return accuracy, loss
+    return accuracy, loss
+
+    
+def get_pred_distribution(model, dataloader, device):
+    """ Given a model and dataloader object, return a dictionary of the distribution """
+    res_distribution = defaultdict(int)
+    
+    # Get the indices of the target classes
+    for i in dataloader.dataset.class_to_idx.values():
+        res_distribution[i] = 0
+    
+    size = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    model.to(device)
+    model.eval()
+    
+    preds = []
+    
+    with torch.no_grad():
+        for x, y in dataloader:
+            x, y = x.to(device), y.to(device)
+            pred = model(x)
+            preds.extend(pred.argmax(1).tolist())
+            
+    for k,v in dict(Counter(preds)).items():
+        res_distribution[k] += v
+        
+    return dict(res_distribution)
+    pass
 
 
 def main():
