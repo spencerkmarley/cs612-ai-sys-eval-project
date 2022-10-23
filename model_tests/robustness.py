@@ -512,6 +512,7 @@ def perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, v
             draw.text((0, 0), "TADA", (255, 255, 255), font=font)
             x_w = pil_to_tensor(x_w)
             x_w = x_w/255
+            x_w = x_w[None, :, :, :]
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
             
@@ -555,6 +556,7 @@ def perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold,
             draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
             x_sq = pil_to_tensor(x_sq)
             x_sq = torch.div(x_sq, 255.0) #must renormalize this.
+            x_sq = x_sq[None, :, :, :]
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_sq_benign, prediction_sq_subject = benign(x_sq), subject(x_sq)
             
