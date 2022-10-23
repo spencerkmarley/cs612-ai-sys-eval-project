@@ -26,7 +26,7 @@ from collections import defaultdict, Counter
 
 from copy import deepcopy
 
-#torch.manual_seed(42)
+torch.manual_seed(42)
 
 # Add paths
 sys.path.append('.')
@@ -34,9 +34,11 @@ sys.path.append('.')
 # Utility functions
 import util
 from util import get_pytorch_device, open_model, load_model, save_model, train, test
+from util import NAD_train, NAD_test
 
 # Import models with perturbations
-from models.definitions import CIFAR10_Noise_Net, CIFAR10Net_NeuronsOff
+from models.definitions import CIFAR10_Noise_Net, CIFAR10Net_NeuronsOff, CIFAR10Net_AT
+from models.definitions import AT
 
 
 #
@@ -49,19 +51,22 @@ def has_backdoor(subject_model, test_model, threshold=0.1):
   test_type: a string, 'Gaussian noised', 'randomly switching off neurons', 'neural attention distilled'
   '''
   percent_diff = prediction_variance(subject_model, test_model)
-  print(f'Percentage difference in inferences: {percent_diff}')
-
   percent_diff = dict(sorted(percent_diff.items(), key=lambda item: abs(item[1]),reverse=True))
 
+  print('Percentage difference in inferences:')
+  for k,v in percent_diff.items():
+    print('Class {}: {:.2f}%'.format(k,v*100))
+  print()
+  
   backdoored_classes = [k for k,v in percent_diff.items() if abs(v)>=threshold]
-  
-  if len(backdoored_classes):
-    print('\nThe subject model most likely has a backdoor')
-    print('\n----Most likely backdoored classes by descending order----')
-    print(' '.join(str(k) for k in backdoored_classes))
-  else:
-    print('\nThe subject model most likely does not have a backdoor')
-  
+    
+  # if len(backdoored_classes):
+    # print('\nThe subject model most likely has a backdoor')
+    # print('\n----Most likely backdoored classes by descending order----')
+    # print(' '.join(str(k) for k in backdoored_classes))
+  # else:
+    # print('\nThe subject model most likely does not have a backdoor')
+    
   return backdoored_classes
 
 
@@ -81,10 +86,10 @@ def prediction_variance(subject_model, test_model):
 # Load the subject model
 from models.definitions import CIFAR10Net
 subject_model_filename = 'models/subject/best_model_CIFAR10_10BD.pt'
-subject_model = load_model(CIFAR10Net, subject_model_filename)
+subject_model = open_model(subject_model_filename)
 
-#subject_model = open_model(subject_model_filename)
-print(summary(subject_model,(3,32,32)))
+#subject_model = load_model(CIFAR10Net, subject_model_filename)
+# print(summary(subject_model,(3,32,32)))
 
 
 
@@ -104,10 +109,8 @@ device = get_pytorch_device()
 loss_fn = nn.CrossEntropyLoss()
 test(subject_model, test_loader, loss_fn, device)
 
-
-
 pred_distribution = util.model.get_pred_distribution(subject_model, test_loader, device)
-print(f' Class distribution from inference of clean model: {pred_distribution}')
+print(f'Class distribution from inference of clean model: {pred_distribution}\n\n')
 
 
 def retrain_model(
@@ -159,6 +162,7 @@ def create_save_filename(base_model_filename, retrain_arch, suffix = None):
 #
 # TEST 1 - Gaussian noise
 #
+print('TEST 1: Adding Noise Layer')
 model_noise = retrain_model(
   base_model_filename = subject_model_filename,
   retrain_arch = CIFAR10_Noise_Net,
@@ -168,12 +172,16 @@ model_noise = retrain_model(
 
 backdoored_classes = has_backdoor(subject_model, model_noise)
 if len(backdoored_classes):
-    print('The subject model has a backdoor')
+    print('The subject model likely has a backdoor')
     print(backdoored_classes)
+else:
+    print('The subject model does not have a backdoor')
+print()
 
 #
 # TEST 2 - Randomly switch off neurons
 #
+print('TEST 2: Turning Neurons Off')
 model_NeuronsOff = retrain_model(
   base_model_filename = subject_model_filename,
   retrain_arch = CIFAR10Net_NeuronsOff,
@@ -183,13 +191,17 @@ model_NeuronsOff = retrain_model(
 
 backdoored_classes = has_backdoor(subject_model, model_NeuronsOff)
 if len(backdoored_classes):
-    print('The subject model has a backdoor')
+    print('The subject model likely has a backdoor')
     print(backdoored_classes)
+else:
+    print('The subject model does not have a backdoor')
+print()
     
     
 #
 # TEST 3 - Neural Attention Distillation
 #
+print('TEST 3: Neural Attention Distillation')
 save_filename = create_save_filename(subject_model_filename, None, 'NAD_Teacher')
 save_filename = os.path.join('models', 'retrained', save_filename)
 
@@ -201,6 +213,42 @@ model_Teacher = retrain_model(
   save_filename = save_filename
 )
 
-print(model_Teacher)
+# Load the Student and Teacher models
+model_Student = load_model(CIFAR10Net_AT, subject_model_filename)
+model_Teacher = load_model(CIFAR10Net_AT, save_filename)
+model_Student, model_Teacher = model_Student.to(device), model_Teacher.to(device)
 
-# Load the student model
+
+# Train the student model 
+model_Teacher.eval()
+
+for param in model_Teacher.parameters():
+  param.requires_grad = False
+
+criterionCl = nn.CrossEntropyLoss()
+criterionAT = AT(p=2)
+
+save_filename = create_save_filename(subject_model_filename, None, 'NAD_Student')
+save_filename = os.path.join('models', 'retrained', save_filename)
+
+FORCE_RETRAIN = False
+if FORCE_RETRAIN or not os.path.exists(save_filename):
+  optimizer = optim.Adam(model_Student.parameters(), lr = 0.001)
+  epochs = 30
+  best_accuracy = 0
+  for epoch in range(epochs):
+    print('\n------------- Epoch {} of student model training-------------\n'.format(epoch+1))
+    NAD_train(model_Student, model_Teacher, optimizer, criterionCl, criterionAT, train_loader)
+    accuracy = NAD_test(model_Student, test_loader)
+
+    if accuracy > best_accuracy:
+      save_model(model_Student, save_filename)
+
+model_Student = load_model(CIFAR10Net, save_filename)
+
+backdoored_classes = has_backdoor(subject_model, model_Student)
+if len(backdoored_classes):
+    print('The subject model likely has a backdoor')
+    print(backdoored_classes)
+else:
+    print('The subject model does not have a backdoor')
