@@ -23,7 +23,7 @@ import numpy as np
 import os
 import pathlib
 
-import util
+# import util
 
 """Clean model"""
 
