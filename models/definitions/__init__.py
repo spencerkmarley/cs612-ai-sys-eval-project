@@ -12,3 +12,6 @@ from .cifar100 import CIFAR100Net
 from .mnist import MNIST_Noise_Net, MNISTNet_NeuronsOff, MNISTNet_AT
 from .cifar10 import CIFAR10_Noise_Net, CIFAR10Net_NeuronsOff, CIFAR10Net_AT
 from .cifar100 import CIFAR100_Noise_Net, CIFAR100Net_NeuronsOff, CIFAR100Net_AT
+
+# Other architectures
+from .nad import AT
