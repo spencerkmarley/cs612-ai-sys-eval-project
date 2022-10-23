@@ -74,12 +74,8 @@ def train(model, dataloader, loss_fn, optimizer, device):
             
 
 
-def test(model, dataloader, loss_fn, device, testset = None):
+def test(model, dataloader, loss_fn, device):
     """ Run test on the model"""
-    # Specific for some tests requiring the testset to be specified
-    if testset is not None:
-        output = {k:0 for k in list(dict(Counter(testset.targets)).keys())}
-
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.to(device)
@@ -93,19 +89,13 @@ def test(model, dataloader, loss_fn, device, testset = None):
             loss += loss_fn(pred, y).item()
             result = pred.argmax(1)
             correct += (result == y).type(torch.int).sum().item()
-            if testset is not None:
-                for res in result:
-                    output[res.to('cpu').numpy().item()]+=1
 
     loss /= num_batches
     correct /= size
     accuracy = 100*correct
     print('Test Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}\n'.format(accuracy, loss))
 
-    if testset is not None:
-        return accuracy, loss, output
-    else:
-        return accuracy, loss
+    return accuracy, loss
     
 def get_pred_distribution(model, dataloader, device):
     """ Given a model and dataloader object, return a dictionary of the distribution """
