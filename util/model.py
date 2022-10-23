@@ -11,9 +11,12 @@ sys.path.append('..')
 from models.definitions import *
 
         
-def open_model(model_filename):
+def open_model(model_filename, device=None):
     """ Opens a model from the file, checks that it is a pytorch model, and assigns it to the correct architecture.
     Currently only supporting MNIST, CIFAR10, CIFAR1000 per project requirements """
+    
+    if device is None:
+        device = get_pytorch_device()
     
     # Check that file exists
     if not os.path.exists(model_filename):
@@ -36,10 +39,13 @@ def open_model(model_filename):
     pass
 
 
-def load_model(model_class, name):
+def load_model(model_class, name, device=None):
+    if device is None:
+        device = get_pytorch_device()
+        
     model = model_class()
     model.load_state_dict(torch.load(name, map_location=get_pytorch_device()))
-
+    model.to(get_pytorch_device())
     return model
 
 
