@@ -34,12 +34,13 @@ if TEST_CASE == 1:
     network_definition = MNISTNet()
     benign_model_file_path = "models/benign/mnist.pt"
     subject_model_file_path = "models/subject/mnist_backdoored_1.pt"
-    dataset = datasets.MNIST(data_file_path, train=False, transform=transforms.ToTensor())
+    testset = datasets.MNIST(data_file_path, train=False, transform=transforms.ToTensor())
     
 elif TEST_CASE == 2:
     network_definition = CIFAR10Net()
     benign_model_file_path = "models/benign/benign_CIFAR10.pt"
     subject_model_file_path = "./models/subject/best_model_CIFAR10_10BD.pt"
+    trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
 
 # Set parameters
 NUM_IMG = 10
@@ -55,12 +56,15 @@ subject_model = network_definition
 subject_model.load_state_dict(torch.load(subject_model_file_path))
 
 # Retrain the subject model and test the weights to deteremine if there is a back door
-# rt.main(network=network_definition, subject=subject_model, trainset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.ToTensor()), testset = datasets.CIFAR10(root='./data', train=False,download=True, transform=transforms.ToTensor()), retrained="./models/retrained/retrained_CIFAR10_10BD_", n_control_models = 2, verbose=True)
+try:
+    rt.main(network=network_definition, subject=subject_model, trainset = , testset = datasets.CIFAR10(root='./data', train=False,download=True, transform=transforms.ToTensor()), retrained="./models/retrained/retrained_CIFAR10_10BD_", n_control_models = 2, verbose=True)
+except:
+    print("Retraining the subject model and testing the weights failed")
 
 # Test robustness of model using robustness.py tests to determine if there is a backdoor
 for i in range(13):
     try:
-        robust = rb.test_robust(benign=benign_model, subject=subject_model, dataset=dataset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=False)
+        robust = rb.test_robust(benign=benign_model, subject=subject_model, testset=testset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=False)
         print(robust)
     except:
         print("Robustness test " + str(i) + " failed")
