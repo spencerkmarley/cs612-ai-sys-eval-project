@@ -201,7 +201,7 @@ def perturb_invert(benign, subject, dataset, test, num_img, eps, threshold, verb
         robust = False  
    
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices_to_invert))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices_to_invert)))
         if robust:
             print("Model is robust")
         else:
@@ -243,7 +243,7 @@ def perturb_change_lighting(benign, subject, dataset, test, num_img, eps, thresh
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -258,7 +258,8 @@ def perturb_zoom_in_out(benign, subject, dataset, test, num_img, eps, threshold,
     
     <By Titus>
     '''
-    print("Perturbing by zooming in and out...")
+    if verbose:
+        print("Perturbing by zooming in and out...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -288,7 +289,7 @@ def perturb_zoom_in_out(benign, subject, dataset, test, num_img, eps, threshold,
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -302,7 +303,8 @@ def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verb
     image of a specific dimension right?
     '''
     # Perturb some clean samples by resizing
-    print("Perturbing by resizing...")
+    if verbose:
+        print("Perturbing by resizing...")
     return dataset
 
 def perturb_crop_rescale(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
@@ -312,7 +314,8 @@ def perturb_crop_rescale(benign, subject, dataset, test, num_img, eps, threshold
     <By Titus>
     '''
     # Perturb some clean samples by cropping and rescaling
-    print("Perturbing by cropping and rescaling...")
+    if verbose:
+        print("Perturbing by cropping and rescaling...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -344,7 +347,7 @@ def perturb_crop_rescale(benign, subject, dataset, test, num_img, eps, threshold
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -359,7 +362,8 @@ def perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, th
     <By Titus>
     '''
     # Perturb some clean samples by bit depth reduction
-    print("Perturbing by bit depth reduction...")
+    if verbose:
+        print("Perturbing by bit depth reduction...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -370,7 +374,11 @@ def perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, th
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            c = torch.tensor((x*255).clone(), dtype = torch.uint8) #necessary for posterize function
+            sourceTensor = (x*255).clone()
+            # sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True)
+            # torch.tensor(sourceTensor)
+
+            c = torch.tensor(sourceTensor, dtype = torch.uint8) #necessary for posterize function
             posterizer = RandomPosterize(bits=2)
             c_pos = posterizer(c)
             x_pos = torch.div(c_pos, 255) #Must normalize, but this converts dtype back to float tensor.
@@ -389,7 +397,7 @@ def perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, th
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -402,12 +410,14 @@ def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, th
     Titus: Is this what you mean by compress? https://www.geeksforgeeks.org/how-to-compress-images-using-python-and-pil/
     '''
     # Perturb some clean samples by compressing and decompressing
-    print("Perturbing by compressing and decompressing...")
+    if verbose:
+        print("Perturbing by compressing and decompressing...")
     return dataset
 
 def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     # Perturb some clean samples by total var min
-    print("Perturbing by total var min...")
+    if verbose:
+        print("Perturbing by total var min...")
     return dataset
 
 class AddGaussianNoise(object):
@@ -436,7 +446,8 @@ def perturb_adding_noise(benign, subject, dataset, test, num_img, eps, threshold
     
     <By Titus>
     '''
-    print("Perturbing by adding noise...")
+    if verbose:
+        print("Perturbing by adding noise...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -464,12 +475,12 @@ def perturb_adding_noise(benign, subject, dataset, test, num_img, eps, threshold
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
-            print("Model is not robust")    
-    
+            print("Model is not robust")
+
     return robust
 
 def perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
@@ -511,7 +522,7 @@ def perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, v
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -554,7 +565,7 @@ def perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold,
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
