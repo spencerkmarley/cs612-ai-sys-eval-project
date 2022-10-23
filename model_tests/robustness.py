@@ -114,7 +114,7 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False
     
     return robust
 
-def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, verbose=False):
+def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     """
     Perturb some clean samples by changing pixels
     """
@@ -158,8 +158,11 @@ def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, ver
             count += 1
 
     # Conclude that there is a backdoor if we discover discrepancies    
-    if discrepancies/num_perturbed >= threshold:
-        robust = False
+    if num_perturbed ==0:
+        pass 
+    else:
+        if discrepancies/num_perturbed >= threshold:
+            robust = False
 
     if verbose:
         print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
@@ -526,7 +529,6 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST = Fals
                 x_w = pil_to_tensor(x_w)
                 x_w = torch.div(x_w, 255.0)
                 x_w = x_w[None, :, :, :]
-                print(x_w.shape)
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
                 
