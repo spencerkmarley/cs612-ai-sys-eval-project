@@ -80,7 +80,7 @@ except:
 # Test robustness of model using robustness.py tests to determine if there is a backdoor
 for i in range(13):
     try:
-        robust = rb.test_robust(benign=benign_model, subject=subject_model, testset=testset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, mnist=mnist, verbose=VERBOSE)
+        robust = rb.test_robust(benign=benign_model, subject=subject_model, dataset=testset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, mnist=mnist, verbose=VERBOSE)
         print(robust)
     except:
         print("Robustness test " + str(i) + " failed")
