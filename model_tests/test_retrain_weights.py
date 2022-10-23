@@ -91,7 +91,7 @@ def test(model, dataloader, loss_fn, device, verbose=False):
 
     return accuracy, loss
 
-def main(network, subject, trainset, testset, retrained, n_control_models = 2, verbose=False):
+def main(network, subject, trainset, testset, retrained, n_control_models, learning_rate=0.001, epochs=30, threshold=0.10, verbose=False):
     """Load subject model and get subject model's summary and weights"""
 
     # Device selection - includes Apple Silicon
@@ -120,17 +120,14 @@ def main(network, subject, trainset, testset, retrained, n_control_models = 2, v
 
     """Retraining subject model for testing"""
     
-    n_control_models = 2 # Number of control models to build to check for deviation
-    
     retrain_models = []
-    for n in range(n_control_models):
+    for n in range(n_control_models): # Number of control models to build to check for deviation
         FORCE_RETRAIN = True # Only set to True if you want to retrain the model
         if not os.path.exists(retrained+str(n)+'.pt') or FORCE_RETRAIN:
             if verbose:
                 print(f'Training #{n+1} of {n_control_models} models')
             retrain_model = network.to(device)
-            optimizer = optim.Adam(retrain_model.parameters(), lr=0.001)
-            epochs = 30
+            optimizer = optim.Adam(retrain_model.parameters(), lr=learning_rate)
             best_accuracy = 0
 
             for epoch in range(epochs):
@@ -186,8 +183,6 @@ def main(network, subject, trainset, testset, retrained, n_control_models = 2, v
     if verbose:
         print(f'Number of outlier neurons: {num_outlier_neurons.item()}')
         print(f'Percentage of outlier neurons: {percent_outlier_neurons.item()*100:.2f}%')
-
-    threshold = 0.10 #can be adjusted.
 
     if verbose:
         if percent_outlier_neurons > threshold:
