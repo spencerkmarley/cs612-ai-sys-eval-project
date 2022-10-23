@@ -147,10 +147,13 @@ def retrain_model(
   return new_model
 
   
-def create_save_filename(base_model_filename, retrain_arch):
+def create_save_filename(base_model_filename, retrain_arch, suffix = None):
   """ Creates a filename for saving a retrained model """
   filename_stem = pathlib.Path(base_model_filename).stem
-  new_filename = filename_stem + '__' + retrain_arch.__name__ + '.pt'
+  if suffix is None:
+    new_filename = filename_stem + '__' + retrain_arch.__name__ + '.pt'
+  else:
+    new_filename = filename_stem + '__' + suffix + '.pt'
   return new_filename
 
 #
@@ -171,9 +174,6 @@ if len(backdoored_classes):
 #
 # TEST 2 - Randomly switch off neurons
 #
-FORCE_RELOAD = False
-save_filename = os.path.join('models', 'CIFAR10NET_NeuronsOff.pt')
-
 model_NeuronsOff = retrain_model(
   base_model_filename = subject_model_filename,
   retrain_arch = CIFAR10Net_NeuronsOff,
@@ -185,3 +185,18 @@ backdoored_classes = has_backdoor(subject_model, model_NeuronsOff)
 if len(backdoored_classes):
     print('The subject model has a backdoor')
     print(backdoored_classes)
+    
+    
+#
+# TEST 3 - Neural Attention Distillation
+#
+save_filename = create_save_filename(subject_model_filename, None, 'NAD_Teacher')
+model_Teacher = retrain_model(
+  base_model_filename = subject_model_filename,
+  retrain_arch = CIFAR10Net,
+  train_loader = train_loader,
+  force_retrain = False,
+  save_filename = save_filename
+)
+
+print(model_Teacher)
