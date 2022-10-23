@@ -48,3 +48,9 @@ mnist_dataset = datasets.MNIST(data_file_path, train=False, transform=transforms
 for i in range(12):
     rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True)
  
+
+
+# First is test_retrain_weights.py - retrain the subject model and test the weights (is there a back door)
+# Then robustness.py tests (is there a back door)
+# Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor) - Gerry trying to port backdoor_forgetting.ipynb
+# Regenerate the trigger - trigger_synthesis standard.py
