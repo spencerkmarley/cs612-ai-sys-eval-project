@@ -80,7 +80,7 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False
     '''
     # Perturb some clean samples by rotating them
     if verbose:
-        print("Perturbing by rotation...")
+        print("\nPerturbing by rotation...")
     
     robust = True
     rotate = RandomRotation(degrees=(45, 60))
@@ -97,16 +97,16 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_rotated_benign, prediction_rotated_subject = benign(x_rotate), subject(x_rotate)
             
-            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
             if prediction_rotated_subject.argmax(1)!=prediction_subject.argmax(1):
-                if prediction_rotated_benign.argmax(1)==prediction_benign.argmax(1):
-                    discrepancies+=1
+                discrepancies+=1
+                # if prediction_rotated_benign.argmax(1)==prediction_benign.argmax(1):
+                #     discrepancies+=1
         
     if discrepancies/len(indices_to_rotate)>= threshold:
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices_to_rotate)))
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices_to_rotate)))
         if robust:
             print("Model is robust")
         else:
@@ -118,7 +118,8 @@ def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshol
     """
     Perturb some clean samples by changing pixels
     """
-
+    if verbose:
+        print('\nPerturbing some clean samples by changing pixels...')
     robust = True
 
     # Take clean samples
@@ -159,17 +160,19 @@ def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshol
 
     # Conclude that there is a backdoor if we discover discrepancies    
     if num_perturbed ==0:
-        pass 
+        if verbose: 
+            print(f'Number perturbed: {num_perturbed}. Model is robust!')
+        return robust 
     else:
         if discrepancies/num_perturbed >= threshold:
             robust = False
 
-    if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
-        if robust:
-            print("Model is robust")
-        else:
-            print("Model is not robust")
+        if verbose:
+            print("Discrepancy = {} %".format(100*discrepancies/num_perturbed))
+            if robust:
+                print("Model is robust")
+            else:
+                print("Model is not robust")
     
     return robust
 
@@ -180,7 +183,7 @@ def perturb_invert(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
     # Perturb some clean samples by inverting them
     if verbose:
-        print("Perturbing by inverting images...")
+        print("\nPerturbing by inverting images...")
     
     robust = True
     
@@ -196,19 +199,19 @@ def perturb_invert(benign, subject, dataset, num_img, threshold, verbose=False):
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_invert_benign, prediction_invert_subject = benign(x_invert), subject(x_invert)
             
-            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
             if prediction_invert_subject.argmax(1)!=prediction_subject.argmax(1):
-                if prediction_invert_benign.argmax(1)==prediction_benign.argmax(1):
-                    discrepancies+=1
-                    if verbose:
-                        plt.imshow(x_invert.permute(1,2,0))
-                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_invert_subject.argmax(1)}')
+                discrepancies+=1
+                # if prediction_invert_benign.argmax(1)==prediction_benign.argmax(1):
+                #     discrepancies+=1
+                #     if verbose:
+                #         plt.imshow(x_invert.permute(1,2,0))
+                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_invert_subject.argmax(1)}')
         
     if discrepancies/len(indices_to_invert)>= threshold:
         robust = False  
    
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices_to_invert)))
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices_to_invert)))
         if robust:
             print("Model is robust")
         else:
@@ -222,7 +225,7 @@ def perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbos
     <By Titus>
     '''
     if verbose:
-        print("Perturbing by changing the lighting...")
+        print("\nPerturbing by changing the lighting...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -237,16 +240,16 @@ def perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbos
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_bright_benign, prediction_bright_subject = benign(x_bright), subject(x_bright)
             
-            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
             if prediction_bright_subject.argmax(1)!=prediction_subject.argmax(1):
-                if prediction_bright_benign.argmax(1)==prediction_benign.argmax(1):
-                    discrepancies+=1
+                discrepancies+=1
+                # if prediction_bright_benign.argmax(1)==prediction_benign.argmax(1):
+                #     discrepancies+=1
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -262,7 +265,7 @@ def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=Fa
     <By Titus>
     '''
     if verbose:
-        print("Perturbing by zooming in and out...")
+        print("\nPerturbing by zooming in and out...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -279,19 +282,19 @@ def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=Fa
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_zoom_benign, prediction_zoom_subject = benign(x_zoom), subject(x_zoom)
             
-            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
             if prediction_zoom_subject.argmax(1)!=prediction_subject.argmax(1):
-                if prediction_zoom_benign.argmax(1)==prediction_benign.argmax(1):
-                    discrepancies+=1
-                    if verbose:
-                        plt.imshow(x_zoom.permute(1,2,0))
-                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_zoom_subject.argmax(1)}')
+                discrepancies+=1
+                # if prediction_zoom_benign.argmax(1)==prediction_benign.argmax(1):
+                #     discrepancies+=1
+                #     if verbose:
+                #         plt.imshow(x_zoom.permute(1,2,0))
+                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_zoom_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -306,7 +309,7 @@ def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verb
     '''
     # Perturb some clean samples by resizing
     if verbose:
-        print("Perturbing by resizing...")
+        print("\nPerturbing by resizing...")
     return dataset
 
 def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=False):
@@ -317,7 +320,7 @@ def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=F
     '''
     # Perturb some clean samples by cropping and rescaling
     if verbose:
-        print("Perturbing by cropping and rescaling...")
+        print("\nPerturbing by cropping and rescaling...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -337,19 +340,19 @@ def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=F
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_crop_benign, prediction_crop_subject = benign(x_crop), subject(x_crop)
             
-            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
             if prediction_crop_subject.argmax(1)!=prediction_subject.argmax(1):
-                if prediction_crop_benign.argmax(1)==prediction_benign.argmax(1):
-                    discrepancies+=1
-                    if verbose:
-                        plt.imshow(x_crop.permute(1,2,0))
-                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_crop_subject.argmax(1)}')
+                discrepancies+=1
+                # if prediction_crop_benign.argmax(1)==prediction_benign.argmax(1):
+                #     discrepancies+=1
+                #     if verbose:
+                #         plt.imshow(x_crop.permute(1,2,0))
+                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_crop_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -365,7 +368,7 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, ve
     '''
     # Perturb some clean samples by bit depth reduction
     if verbose:
-        print("Perturbing by bit depth reduction...")
+        print("\nPerturbing by bit depth reduction...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -385,19 +388,19 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, ve
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_pos_benign, prediction_pos_subject = benign(x_pos), subject(x_pos)
             
-            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
             if prediction_pos_subject.argmax(1)!=prediction_subject.argmax(1):
-                if prediction_pos_benign.argmax(1)==prediction_benign.argmax(1):
-                    discrepancies+=1
-                    if verbose:
-                        plt.imshow(c_pos.permute(1,2,0))
-                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_pos_subject.argmax(1)}')
+                discrepancies+=1
+                # if prediction_pos_benign.argmax(1)==prediction_benign.argmax(1):
+                #     discrepancies+=1
+                #     if verbose:
+                #         plt.imshow(c_pos.permute(1,2,0))
+                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_pos_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -411,13 +414,13 @@ def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, th
     '''
     # Perturb some clean samples by compressing and decompressing
     if verbose:
-        print("Perturbing by compressing and decompressing...")
+        print("\nPerturbing by compressing and decompressing...")
     return dataset
 
 def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     # Perturb some clean samples by total var min
     if verbose:
-        print("Perturbing by total var min...")
+        print("\nPerturbing by total var min...")
     return dataset
 
 class AddGaussianNoise(object):
@@ -447,7 +450,7 @@ def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=F
     <By Titus>
     '''
     if verbose:
-        print("Perturbing by adding noise...")
+        print("\nPerturbing by adding noise...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -463,19 +466,19 @@ def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=F
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_gauss_benign, prediction_gauss_subject = benign(x_gauss), subject(x_gauss)
             
-            #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
             if prediction_gauss_subject.argmax(1)!=prediction_subject.argmax(1):
-                if prediction_gauss_benign.argmax(1)==prediction_benign.argmax(1):
-                    discrepancies+=1
-                    if verbose:
-                        plt.imshow(x_gauss.permute(1,2,0))
-                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_gauss_subject.argmax(1)}')
+                discrepancies+=1
+                # if prediction_gauss_benign.argmax(1)==prediction_benign.argmax(1):
+                #     discrepancies+=1
+                #     if verbose:
+                #         plt.imshow(x_gauss.permute(1,2,0))
+                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_gauss_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -493,7 +496,7 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST = Fals
     <By Titus>
     '''
     if verbose:
-        print("Perturbing by adding a watermark...")
+        print("\nPerturbing by adding a watermark...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -515,10 +518,10 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST = Fals
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
                 
-                #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
                 if prediction_watermark_subject.argmax(1)!=prediction_subject.argmax(1):
-                    if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
-                        discrepancies+=1
+                    discrepancies+=1
+                    # if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
+                    #     discrepancies+=1
     
     else:
         for batch, (x, y) in enumerate(test_loader):
@@ -531,17 +534,17 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST = Fals
                 x_w = x_w[None, :, :, :]
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
-                
-                #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
+                 
                 if prediction_watermark_subject.argmax(1)!=prediction_subject.argmax(1):
-                    if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
-                        discrepancies+=1
+                    discrepancies+=1
+                    # if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
+                    #     discrepancies+=1
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
@@ -555,7 +558,7 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST = Fa
     <By Titus>
     '''
     if verbose:
-        print("Perturbing by adding white square...")  
+        print("\nPerturbing by adding white square...")  
     
     robust = True
     
@@ -577,10 +580,10 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST = Fa
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_sq_benign, prediction_sq_subject = benign(x_sq), subject(x_sq)
                 
-                #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
                 if prediction_sq_subject.argmax(1)!=prediction_subject.argmax(1):
-                    if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
-                        discrepancies+=1
+                    discrepancies+=1
+                    # if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
+                    #     discrepancies+=1
     
     else:
         for batch, (x, y) in enumerate(test_loader):
@@ -594,16 +597,16 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST = Fa
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_sq_benign, prediction_sq_subject = benign(x_sq), subject(x_sq)
                 
-                #if the subject model predicts differently on rotation, discrepancies +=1 if the benign model predicts differently as well
                 if prediction_sq_subject.argmax(1)!=prediction_subject.argmax(1):
-                    if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
-                        discrepancies+=1
+                    discrepancies+=1
+                    # if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
+                    #     discrepancies+=1
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices)))
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
         if robust:
             print("Model is robust")
         else:
