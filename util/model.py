@@ -2,7 +2,7 @@ import os
 import pathlib
 import sys
 import torch
-from collections import Counter
+from collections import Counter, defaultdict
 
 sys.path.append('.')
 from .pytorch_functions import get_pytorch_device
@@ -106,6 +106,33 @@ def test(model, dataloader, loss_fn, device, testset = None):
         return accuracy, loss, output
     else:
         return accuracy, loss
+    
+def get_pred_distribution(model, dataloader, device):
+    """ Given a model and dataloader object, return a dictionary of the distribution """
+    res_distribution = defaultdict(int)
+    
+    # Get the indices of the target classes
+    for i in dataloader.dataset.class_to_idx.values():
+        res_distribution[i] = 0
+    
+    size = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    model.to(device)
+    model.eval()
+    
+    preds = []
+    
+    with torch.no_grad():
+        for x, y in dataloader:
+            x, y = x.to(device), y.to(device)
+            pred = model(x)
+            preds.extend(pred.argmax(1).tolist())
+            
+    for k,v in dict(Counter(preds)).items():
+        res_distribution[k] += v
+        
+    return dict(res_distribution)
+    pass
 
 
 def main():
