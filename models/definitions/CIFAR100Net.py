@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from util.model import add_noise
+from util import add_noise
 
 def conv_block(in_channels, out_channels, pool=False):
     layers = [nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1), 
