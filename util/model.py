@@ -8,8 +8,7 @@ sys.path.append('.')
 from .pytorch_functions import get_pytorch_device
 
 sys.path.append('..')
-import models.definitions
-from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
+from models.definitions import *
 
         
 def open_model(model_filename):
@@ -20,10 +19,14 @@ def open_model(model_filename):
     if not os.path.exists(model_filename):
         raise FileNotFoundError(f'File {model_filename} does not exist')
     
+    # Try opening it using torch.load to check it is a pytorch file
+    model_file = torch.load(model_filename, map_location=get_pytorch_device())
+    
     # Check which class it belongs
-    for model_arch in [CIFAR10Net, CIFAR100Net, MNISTNet]:
+    for model_arch in [MNISTNet, CIFAR10Net, CIFAR100Net, MNISTNet]:
         try:
-            model = load_model(model_arch, model_filename)
+            model = model_arch()
+            model.load_state_dict(model_file)
             model.to(get_pytorch_device())
             return model
         except:
