@@ -21,6 +21,10 @@ import matplotlib.pyplot as plt
 
 from PIL import ImageDraw, ImageFont
 
+# Import other libraries
+import warnings
+warnings.filterwarnings(action='ignore', category=UserWarning) 
+
 # For reproducibility
 torch.manual_seed(42)
 
@@ -375,10 +379,8 @@ def perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, th
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
             sourceTensor = (x*255).clone()
-            # sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True)
-            # torch.tensor(sourceTensor)
-
             c = torch.tensor(sourceTensor, dtype = torch.uint8) #necessary for posterize function
+            
             posterizer = RandomPosterize(bits=2)
             c_pos = posterizer(c)
             x_pos = torch.div(c_pos, 255) #Must normalize, but this converts dtype back to float tensor.
