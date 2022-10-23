@@ -102,7 +102,7 @@ def perturb_rotation(benign, subject, dataset, test, num_img, eps, threshold, ve
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices_to_rotate))
         if robust:
             print("Model is robust")
         else:
@@ -201,11 +201,11 @@ def perturb_invert(benign, subject, dataset, test, num_img, eps, threshold, verb
         robust = False  
    
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices_to_invert))
         if robust:
             print("Model is robust")
         else:
-            print("Model is not robust")
+            print("Model is not robust")  
     
     return robust
 
@@ -243,11 +243,11 @@ def perturb_change_lighting(benign, subject, dataset, test, num_img, eps, thresh
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
         if robust:
             print("Model is robust")
         else:
-            print("Model is not robust")     
+            print("Model is not robust")       
     
     return robust
 
@@ -288,11 +288,11 @@ def perturb_zoom_in_out(benign, subject, dataset, test, num_img, eps, threshold,
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
         if robust:
             print("Model is robust")
         else:
-            print("Model is not robust")    
+            print("Model is not robust")      
     
     return robust
 
@@ -344,11 +344,11 @@ def perturb_crop_rescale(benign, subject, dataset, test, num_img, eps, threshold
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
         if robust:
             print("Model is robust")
         else:
-            print("Model is not robust")     
+            print("Model is not robust")       
     
     return robust
 
@@ -389,11 +389,11 @@ def perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, th
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
         if robust:
             print("Model is robust")
         else:
-            print("Model is not robust")     
+            print("Model is not robust")       
     
     return robust
 
@@ -464,11 +464,11 @@ def perturb_adding_noise(benign, subject, dataset, test, num_img, eps, threshold
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
         if robust:
             print("Model is robust")
         else:
-            print("Model is not robust")   
+            print("Model is not robust")    
     
     return robust
 
@@ -511,11 +511,11 @@ def perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, v
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
         if robust:
             print("Model is robust")
         else:
-            print("Model is not robust")     
+            print("Model is not robust")      
     
     return robust
 
@@ -554,7 +554,7 @@ def perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold,
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices))
         if robust:
             print("Model is robust")
         else:
