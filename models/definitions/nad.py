@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 # Define class to compute MSE loss between the attention map of the feature vectors of the teacher and student models.
