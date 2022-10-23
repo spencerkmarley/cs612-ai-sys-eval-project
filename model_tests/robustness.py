@@ -38,34 +38,32 @@ Test the robustness of a model by:
 
 def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, verbose=False):
 
-    robust = True
-
     if test == 0:
-        perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=verbose)
     elif test == 1:
-        perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
+        robust = perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
     elif test == 2:
-        perturb_invert(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_invert(benign, subject, dataset, num_img, threshold, verbose=verbose)
     elif test == 3:
-        perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose=verbose)
     elif test == 4:
-        perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=verbose)
     elif test == 5:
-        perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
+        robust = perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
     elif test == 6:
-        perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=verbose)
     elif test == 7:
-        perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose=verbose)
     elif test == 8:
-        perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
+        robust = perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
     elif test == 9:
-        perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
+        robust = perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
     elif test == 10:
-        perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=verbose)
     elif test == 11:
-        perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST= mnist, verbose=verbose)
+        robust = perturb_watermark(benign, subject, dataset, num_img, threshold, mnist= mnist, verbose=verbose)
     elif test == 12:
-        perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST= mnist, verbose=verbose)
+        robust = perturb_whitesquare(benign, subject, dataset, num_img, threshold, mnist= mnist, verbose=verbose)
     else:
         print("Please provide a valid test number")
     
@@ -310,7 +308,7 @@ def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verb
     # Perturb some clean samples by resizing
     if verbose:
         print("\nPerturbing by resizing...")
-    return dataset
+    pass
 
 def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
@@ -415,13 +413,13 @@ def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, th
     # Perturb some clean samples by compressing and decompressing
     if verbose:
         print("\nPerturbing by compressing and decompressing...")
-    return dataset
+    pass
 
 def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     # Perturb some clean samples by total var min
     if verbose:
         print("\nPerturbing by total var min...")
-    return dataset
+    pass
 
 class AddGaussianNoise(object):
     '''
@@ -486,7 +484,7 @@ def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=F
 
     return robust
 
-def perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST = False, verbose=False):
+def perturb_watermark(benign, subject, dataset, num_img, threshold, mnist = False, verbose=False):
     '''
     Add watermark to 20% of the test samples
     
@@ -506,7 +504,7 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST = Fals
     font = ImageFont.truetype("/Library/fonts/Arial.ttf", 5)
     discrepancies = 0
     
-    if not MNIST:
+    if not mnist:
         for batch, (x, y) in enumerate(test_loader):
             if batch in indices:
                 x_w = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
@@ -552,7 +550,7 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST = Fals
     
     return robust
 
-def perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST = False, verbose=False):
+def perturb_whitesquare(benign, subject, dataset, num_img, threshold, mnist = False, verbose=False):
     '''
     Perturb 20% of clean samples by adding a white square
     <By Titus>
@@ -568,7 +566,7 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST = Fa
     test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     discrepancies = 0
     
-    if not MNIST:
+    if not mnist:
         for batch, (x, y) in enumerate(test_loader):
             if batch in indices:
                 x_sq = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
