@@ -63,9 +63,9 @@ def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, 
     elif test == 10:
         perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 11:
-        perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST= False, verbose=False)
+        perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST= mnist, verbose=False)
     elif test == 12:
-        perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST= False, verbose=False)
+        perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST= mnist, verbose=False)
     else:
         print("Please provide a valid test number")
     
