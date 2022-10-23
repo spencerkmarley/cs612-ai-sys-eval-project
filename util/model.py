@@ -20,14 +20,10 @@ def open_model(model_filename):
     if not os.path.exists(model_filename):
         raise FileNotFoundError(f'File {model_filename} does not exist')
     
-    # Try opening it using torch.load to check it is a pytorch file
-    model_file = torch.load(model_filename, map_location=get_pytorch_device())
-    
     # Check which class it belongs
     for model_arch in [CIFAR10Net, CIFAR100Net, MNISTNet]:
         try:
-            model = model_arch()
-            model.load_state_dict(model_file)
+            model = load_model(model_arch, model_filename)
             model.to(get_pytorch_device())
             return model
         except:
