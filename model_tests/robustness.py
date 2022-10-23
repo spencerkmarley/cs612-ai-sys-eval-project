@@ -507,11 +507,11 @@ def perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, v
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            x_w = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGBA')
+            x_w = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
             draw = ImageDraw.Draw(x_w)
             draw.text((0, 0), "TADA", (255, 255, 255), font=font)
             x_w = pil_to_tensor(x_w)
-            x_w = x_w/255
+            x_w = torch.div(x_w, 255.0)
             x_w = x_w[None, :, :, :]
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
@@ -551,7 +551,7 @@ def perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold,
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            x_sq = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGBA')
+            x_sq = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
             draw = ImageDraw.Draw(x_sq)
             draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
             x_sq = pil_to_tensor(x_sq)
