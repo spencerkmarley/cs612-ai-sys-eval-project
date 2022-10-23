@@ -575,7 +575,7 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, verbose = 
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            x_sq = ToPILImage()(denormalize(x).clone().data).convert('RGBA')
+            x_sq = ToPILImage()((x*255).clone().data).convert('RGBA')
             draw = ImageDraw.Draw(x_sq)
             draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
             x_sq = pil_to_tensor(x_sq)
