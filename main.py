@@ -50,7 +50,8 @@ mnist_dataset = datasets.MNIST(data_file_path, train=False, transform=transforms
 # Test robustness of model using robustness.py tests to determine if there is a backdoor
 for i in range(13):
     try:
-        rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True)
+        robust = rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=False)
+        print(robust)
     except:
         print("Robustness test " + str(i) + " failed")
     

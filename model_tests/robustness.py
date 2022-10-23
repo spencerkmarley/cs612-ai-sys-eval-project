@@ -32,85 +32,51 @@ Test the robustness of a model by:
 (iv) concluding that there is a backdoor if we discover discrepancies
 """
 
-def denormalize(x):
-    '''
-    Titus: I found some bugs here because of the .astype('uint8') and .reshape(28,28).
-    Maybe we just leave this function as return x *=255?
-    '''
-    x = (x * 255).astype('uint8')
-    x = x.reshape(28,28)
-
-    return x
-
-def display(x, y, x_adv, y_adv):
-    x = denormalize(x)
-    x_adv = denormalize(x_adv)
-
-    fig, ax = plt.subplots(1, 2)
-
-    ax[0].set(title='Original. Label is {}'.format(y))
-    ax[1].set(title='Adv. sample. Label is {}'.format(y_adv))
-
-    ax[0].imshow(x, cmap='gray')
-    ax[1].imshow(x_adv, cmap='gray')
-    
-    plt.show()
-
-def display_single(x, y):
-    x = denormalize(x)
-
-    fig, ax = plt.subplots(1, 1)
-
-    ax.set(title='Original. Label is {}'.format(y))
-
-    ax.imshow(x, cmap='gray')
-    
-    plt.show()
-
 def test_robust(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
 
     robust = True
 
     if test == 0:
-        perturb_rotation(benign, subject, dataset, num_img, threshold, verbose)
+        perturb_rotation(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 1:
-        perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, verbose)
+        perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 2:
-        perturb_invert(benign, subject, dataset, num_img, threshold, verbose)
+        perturb_invert(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 3:
-        perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose)
+        perturb_change_lighting(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 4:
-        perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose)
+        perturb_zoom_in_out(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 5:
-        perturb_resize(benign, subject, dataset, num_img)
+        perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 6:
-        perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose)
+        perturb_crop_rescale(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 7:
-        perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose)
+        perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 8:
-        perturb_compress_decompress(benign, subject, dataset, num_img)
+        perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 9:
-        perturb_total_var_min(benign, subject, dataset, num_img)
+        perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 10:
-        perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose)
+        perturb_adding_noise(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 11:
-        perturb_watermark(benign, subject, dataset, num_img, threshold, verbose)
+        perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 12:
-        perturb_whitesquare(benign, subject, dataset, num_img, threshold, verbose)
+        perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     else:
         print("Please provide a valid test number")
     
     return robust
 
 
-def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False):
+def perturb_rotation(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Randomly sample 20% of the test images for perturbation by rotation.
     The rotation range is set to between 45-60 degrees.
     <By Titus>
     '''
     # Perturb some clean samples by rotating them
-    print("Perturbing by rotation...")
+    if verbose:
+        print("Perturbing by rotation...")
     
     robust = True
     rotate = RandomRotation(degrees=(45, 60))
@@ -131,9 +97,6 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False
             if prediction_rotated_subject.argmax(1)!=prediction_subject.argmax(1):
                 if prediction_rotated_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
-                    if verbose:
-                        plt.imshow(x_rotate.permute(1,2,0))
-                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_rotated_subject.argmax(1)}')
         
     if discrepancies/len(indices_to_rotate)>= threshold:
         robust = False  
@@ -147,7 +110,7 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False
     
     return robust
 
-def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, verbose=False):
+def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     """
     Perturb some clean samples by changing pixels
     """
@@ -187,8 +150,6 @@ def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, ver
                 
                 if prediction_benign.argmax(1) != prediction_subject.argmax(1):
                     discrepancies += 1
-                    # if verbose:
-                    #     display(x.detach().numpy().reshape(-1), y.item(), x_perturb.detach().numpy().reshape(-1), prediction_subject.item())
 
             count += 1
 
@@ -205,13 +166,14 @@ def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, ver
     
     return robust
 
-def perturb_invert(benign, subject, dataset, num_img, threshold, verbose = False):
+def perturb_invert(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Randomly sample 20% of images for color inversion.
     <By Titus>
     '''
     # Perturb some clean samples by inverting them
-    print("Perturbing by inverting images...")
+    if verbose:
+        print("Perturbing by inverting images...")
     
     robust = True
     
@@ -247,12 +209,13 @@ def perturb_invert(benign, subject, dataset, num_img, threshold, verbose = False
     
     return robust
 
-def perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose = False):
+def perturb_change_lighting(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Perturb 20% of clean samples by changing the lighting
     <By Titus>
     '''
-    print("Perturbing by changing the lighting...")
+    if verbose:
+        print("Perturbing by changing the lighting...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -288,7 +251,7 @@ def perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbos
     
     return robust
 
-def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose = False):
+def perturb_zoom_in_out(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Perturb 20% of clean samples by zooming in and out. 
     References: https://stackoverflow.com/questions/64727718/clever-image-augmentation-random-zoom-out
@@ -333,7 +296,7 @@ def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose = 
     
     return robust
 
-def perturb_resize(benign, subject, dataset, num_img):
+def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Titus: This function might be a problem because the networks are trained to take in 
     image of a specific dimension right?
@@ -342,7 +305,7 @@ def perturb_resize(benign, subject, dataset, num_img):
     print("Perturbing by resizing...")
     return dataset
 
-def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose = False):
+def perturb_crop_rescale(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Perturb 20% of clean samples by cropping and rescaling
     
@@ -389,7 +352,7 @@ def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose =
     
     return robust
 
-def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose = False):
+def perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Perturb 20% of clean samples by bitwise depth reduction.
     
@@ -434,7 +397,7 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, ve
     
     return robust
 
-def perturb_compress_decompress(benign, subject, dataset, num_img):
+def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Titus: Is this what you mean by compress? https://www.geeksforgeeks.org/how-to-compress-images-using-python-and-pil/
     '''
@@ -442,7 +405,7 @@ def perturb_compress_decompress(benign, subject, dataset, num_img):
     print("Perturbing by compressing and decompressing...")
     return dataset
 
-def perturb_total_var_min(benign, subject, dataset, num_img):
+def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     # Perturb some clean samples by total var min
     print("Perturbing by total var min...")
     return dataset
@@ -466,7 +429,7 @@ class AddGaussianNoise(object):
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
 
-def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose = False):
+def perturb_adding_noise(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Perturb 20% of clean samples clean samples by adding noise
     Uses the custom AddGaussianNoise class
@@ -509,7 +472,7 @@ def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose =
     
     return robust
 
-def perturb_watermark(benign, subject, dataset, num_img, threshold, verbose=False):
+def perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Add watermark to 20% of the test samples
     
@@ -518,7 +481,8 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, verbose=Fals
     
     <By Titus>
     '''
-    print("Perturbing by adding a watermark...")
+    if verbose:
+        print("Perturbing by adding a watermark...")
     robust = True
     
     #We sample images amounting to 20% of the dataset and rotate them
@@ -542,9 +506,6 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, verbose=Fals
             if prediction_watermark_subject.argmax(1)!=prediction_subject.argmax(1):
                 if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
-                    if verbose:
-                        plt.imshow(x_w.permute(1,2,0))
-                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_watermark_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
@@ -558,12 +519,13 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, verbose=Fals
     
     return robust
 
-def perturb_whitesquare(benign, subject, dataset, num_img, threshold, verbose = False):
+def perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
     Perturb 20% of clean samples by adding a white square
     <By Titus>
     '''
-    print("Perturbing by adding white square...")  
+    if verbose:
+        print("Perturbing by adding white square...")  
     
     robust = True
     
@@ -575,7 +537,7 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, verbose = 
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            x_sq = ToPILImage()(denormalize(x).clone().data).convert('RGBA')
+            x_sq = ToPILImage()((x*255).clone().data).convert('RGBA')
             draw = ImageDraw.Draw(x_sq)
             draw.rectangle((0, 0, 3, 3), fill=(255, 255, 255))
             x_sq = pil_to_tensor(x_sq)
@@ -587,9 +549,6 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, verbose = 
             if prediction_sq_subject.argmax(1)!=prediction_subject.argmax(1):
                 if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
                     discrepancies+=1
-                    if verbose:
-                        plt.imshow(x_sq.permute(1,2,0))
-                        plt.title(f'Rotated image of class {y} predicted to be class {prediction_sq_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
