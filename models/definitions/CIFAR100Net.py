@@ -2,6 +2,22 @@ import torch
 from torch import nn
 import util
 
+# Import utility functions from model_tests folder
+import sys
+sys.path.append('../..')
+from util.pytorch_functions import get_pytorch_device
+
+
+def add_noise(weights, noise, device = None):
+    """ Add the noise vector to the weights """
+    if device is None:
+        device = get_pytorch_device()
+
+
+    with torch.no_grad():
+        weights.add_(noise.to(device))
+        
+
 def conv_block(in_channels, out_channels, pool=False):
     layers = [nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1), 
               nn.BatchNorm2d(out_channels), 
