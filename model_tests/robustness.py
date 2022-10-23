@@ -36,7 +36,7 @@ Test the robustness of a model by:
 (iv) concluding that there is a backdoor if we discover discrepancies
 """
 
-def test_robust(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
+def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, verbose=False):
 
     robust = True
 
@@ -63,9 +63,9 @@ def test_robust(benign, subject, dataset, test, num_img, eps, threshold, verbose
     elif test == 10:
         perturb_adding_noise(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 11:
-        perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, mnist, verbose=False)
     elif test == 12:
-        perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold, mnist, verbose=False)
     else:
         print("Please provide a valid test number")
     

@@ -36,13 +36,14 @@ else:
 data_file_path = "data/"
 
 # Provide test cases
-TEST_CASE = 2
+TEST_CASE = 1
 
 if TEST_CASE == 1:
     network_definition = MNISTNet()
     benign_model_file_path = "models/benign/mnist.pt"
     subject_model_file_path = "models/subject/mnist_backdoored_1.pt"
     testset = datasets.MNIST(data_file_path, train=False, transform=transforms.ToTensor())
+    mnist = True
     
 elif TEST_CASE == 2:
     network_definition = CIFAR10Net()
@@ -51,6 +52,7 @@ elif TEST_CASE == 2:
     retrained_model_file_path = "./models/retrained/retrained_CIFAR10_10BD_"
     trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
+    mnist = False
 
 # Set parameters
 NUM_IMG = 10
@@ -78,7 +80,7 @@ except:
 # Test robustness of model using robustness.py tests to determine if there is a backdoor
 for i in range(13):
     try:
-        robust = rb.test_robust(benign=benign_model, subject=subject_model, testset=testset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=VERBOSE)
+        robust = rb.test_robust(benign=benign_model, subject=subject_model, testset=testset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, mnist=mnist, verbose=VERBOSE)
         print(robust)
     except:
         print("Robustness test " + str(i) + " failed")
