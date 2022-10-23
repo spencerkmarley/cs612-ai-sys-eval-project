@@ -102,7 +102,7 @@ def perturb_rotation(benign, subject, dataset, test, num_img, eps, threshold, ve
         robust = False  
     
     if verbose:
-        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices_to_rotate))
+        print("Discrepancy = {} %\n".format(100*discrepancies/len(indices_to_rotate)))
         if robust:
             print("Model is robust")
         else:
