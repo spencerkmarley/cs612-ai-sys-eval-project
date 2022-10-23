@@ -24,6 +24,14 @@ from models.train import train_mnist
 import models
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 
+# Device selection - includes Apple Silicon
+if torch.cuda.is_available():
+    device = 'cuda'
+elif torch.backends.mps.is_available():
+    device = 'mps'
+else:
+    device = 'cpu'
+
 # Provide filepaths
 data_file_path = "data/"
 
@@ -55,11 +63,11 @@ EPOCHS = 1 # 30
 
 # Import benign model
 benign_model = network_definition
-benign_model.load_state_dict(torch.load(benign_model_file_path))
+benign_model.load_state_dict(torch.load(benign_model_file_path, map_location=device))
 
 # Import subject model
 subject_model = network_definition
-subject_model.load_state_dict(torch.load(subject_model_file_path))
+subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=device))
 
 # Retrain the subject model and test the weights to deteremine if there is a back door
 try:
