@@ -44,13 +44,18 @@ subject_model.load_state_dict(torch.load(subject_model_file_path))
 # Import dataset(s)
 mnist_dataset = datasets.MNIST(data_file_path, train=False, transform=transforms.ToTensor())
 
-# Test robustness of model
+# Retrain the subject model and test the weights to deteremine if there is a back door
+## TO DO
+# test_retrain_weights.py
+
+# Test robustness of model using robustness.py tests to determine if there is a backdoor
 for i in range(12):
     rb.test_robust(benign=benign_model, subject=subject_model, dataset=mnist_dataset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, verbose=True)
- 
 
+# Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
+## TO DO 
+# Gerry trying to port backdoor_forgetting.ipynb
 
-# First is test_retrain_weights.py - retrain the subject model and test the weights (is there a back door)
-# Then robustness.py tests (is there a back door)
-# Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor) - Gerry trying to port backdoor_forgetting.ipynb
-# Regenerate the trigger - trigger_synthesis standard.py
+# Regenerate the trigger
+## TO DO
+# trigger_synthesis standard.py
