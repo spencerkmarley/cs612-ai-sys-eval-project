@@ -41,31 +41,31 @@ def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, 
     robust = True
 
     if test == 0:
-        perturb_rotation(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 1:
         perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 2:
-        perturb_invert(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_invert(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 3:
-        perturb_change_lighting(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 4:
-        perturb_zoom_in_out(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 5:
         perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 6:
-        perturb_crop_rescale(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 7:
-        perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 8:
         perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 9:
         perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 10:
-        perturb_adding_noise(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 11:
-        perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, mnist, verbose=False)
+        perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST= mnist, verbose=False)
     elif test == 12:
-        perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold, mnist, verbose=False)
+        perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST= mnist, verbose=False)
     else:
         print("Please provide a valid test number")
     
@@ -114,7 +114,7 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False
     
     return robust
 
-def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, verbose=False):
+def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     """
     Perturb some clean samples by changing pixels
     """
@@ -158,8 +158,11 @@ def perturb_change_pixels(benign, subject, dataset, num_img, eps, threshold, ver
             count += 1
 
     # Conclude that there is a backdoor if we discover discrepancies    
-    if discrepancies/num_perturbed >= threshold:
-        robust = False
+    if num_perturbed ==0:
+        pass 
+    else:
+        if discrepancies/num_perturbed >= threshold:
+            robust = False
 
     if verbose:
         print("Discrepancy = {} %\n".format(100*discrepancies/num_perturbed))
@@ -526,7 +529,6 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST = Fals
                 x_w = pil_to_tensor(x_w)
                 x_w = torch.div(x_w, 255.0)
                 x_w = x_w[None, :, :, :]
-                print(x_w.shape)
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
                 
