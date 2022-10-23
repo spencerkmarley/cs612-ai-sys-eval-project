@@ -41,31 +41,31 @@ def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, 
     robust = True
 
     if test == 0:
-        perturb_rotation(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 1:
         perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 2:
-        perturb_invert(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_invert(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 3:
-        perturb_change_lighting(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 4:
-        perturb_zoom_in_out(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 5:
         perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 6:
-        perturb_crop_rescale(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 7:
-        perturb_bit_depth_reduction(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 8:
         perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 9:
         perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
     elif test == 10:
-        perturb_adding_noise(benign, subject, dataset, test, num_img, eps, threshold, verbose=False)
+        perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=False)
     elif test == 11:
-        perturb_watermark(benign, subject, dataset, test, num_img, eps, threshold, mnist, verbose=False)
+        perturb_watermark(benign, subject, dataset, num_img, threshold, MNIST= False, verbose=False)
     elif test == 12:
-        perturb_whitesquare(benign, subject, dataset, test, num_img, eps, threshold, mnist, verbose=False)
+        perturb_whitesquare(benign, subject, dataset, num_img, threshold, MNIST= False, verbose=False)
     else:
         print("Please provide a valid test number")
     
