@@ -186,9 +186,13 @@ def main(network, subject, trainset, testset, retrained, n_control_models, learn
 
     if verbose:
         if percent_outlier_neurons > threshold:
+            backdoor = True
             print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
         else:
+            backdoor = False
             print('It is unlikely that the network has a backdoor.')
-            
+
+    return backdoor
+
 if __name__ == '__main__':
     main()

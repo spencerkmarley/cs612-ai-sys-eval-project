@@ -39,6 +39,7 @@ data_file_path = "data/"
 TEST_CASE = 1
 
 if TEST_CASE == 1:
+    model_string = "MNIST"
     network_definition = MNISTNet()
     benign_model_file_path = "models/benign/mnist.pt"
     subject_model_file_path = "models/subject/mnist_backdoored_1.pt"
@@ -48,6 +49,7 @@ if TEST_CASE == 1:
     mnist = True
     
 elif TEST_CASE == 2:
+    model_string = "CIFAR10"
     network_definition = CIFAR10Net()
     benign_model_file_path = "models/benign/benign_CIFAR10.pt"
     subject_model_file_path = "models/subject/best_model_CIFAR10_10BD.pt"
@@ -57,6 +59,7 @@ elif TEST_CASE == 2:
     mnist = False
 
 elif TEST_CASE == 3:
+    model_string = "CIFAR100"
     network_definition = CIFAR100Net()
     benign_model_file_path = "models/benign/benign_CIFAR100.pt"
     # subject_model_file_path = "models/subject/.pt"
@@ -68,7 +71,7 @@ elif TEST_CASE == 3:
 # Set parameters
 NUM_IMG = 10
 EPS = 0.2
-THRESHOLD = 0.1 # Do we need different thresholds for different tests?
+THRESHOLD = 0.1 # TODO Do we need different thresholds for different tests?
 N_CONTROL_MODELS = 2
 VERBOSE = False
 LEARNING_RATE = 0.001
@@ -81,6 +84,8 @@ benign_model.load_state_dict(torch.load(benign_model_file_path, map_location=dev
 # Import subject model
 subject_model = network_definition
 subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=device))
+
+print("Testing the " + model_string + " model for backdoors...")
 
 # Retrain the subject model and test the weights to deteremine if there is a back door
 try:
