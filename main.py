@@ -42,7 +42,9 @@ if TEST_CASE == 1:
     network_definition = MNISTNet()
     benign_model_file_path = "models/benign/mnist.pt"
     subject_model_file_path = "models/subject/mnist_backdoored_1.pt"
-    testset = datasets.MNIST(data_file_path, train=False, transform=transforms.ToTensor())
+    retrained_model_file_path = "./models/retrained/retrained_mnist_"
+    trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
+    testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = True
     
 elif TEST_CASE == 2:
@@ -54,12 +56,21 @@ elif TEST_CASE == 2:
     testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = False
 
+elif TEST_CASE == 3:
+    network_definition = CIFAR100Net()
+    benign_model_file_path = "models/benign/benign_CIFAR100.pt"
+    # subject_model_file_path = "models/subject/.pt"
+    retrained_model_file_path = "./models/retrained/retrained_CIFAR100_"
+    trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
+    testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
+    mnist = False
+
 # Set parameters
 NUM_IMG = 10
 EPS = 0.2
 THRESHOLD = 0.1 # Do we need different thresholds for different tests?
 N_CONTROL_MODELS = 2
-VERBOSE = True
+VERBOSE = False
 LEARNING_RATE = 0.001
 EPOCHS = 1 # 30
 
@@ -86,6 +97,8 @@ for i in range(13):
         print(robust)
     except:
         print("Robustness test " + str(i) + " failed")
+
+# TODO How do we want to decide if it is robust or not? Must it pass all tests? Or we do grand vote?
 robustness = max(set(robustness_test_results), key=robustness_test_results.count)
 
 # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
