@@ -36,7 +36,7 @@ else:
 data_file_path = "data/"
 
 # Provide test cases
-TEST_CASE = 1
+TEST_CASE = 2
 
 if TEST_CASE == 1:
     model_string = "MNIST"
@@ -73,7 +73,7 @@ NUM_IMG = 10
 EPS = 0.2
 THRESHOLD = 0.1 # TODO Do we need different thresholds for different tests?
 N_CONTROL_MODELS = 2
-VERBOSE = False
+VERBOSE = True
 LEARNING_RATE = 0.001
 EPOCHS = 1 # 30
 

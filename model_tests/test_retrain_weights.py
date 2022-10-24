@@ -22,8 +22,6 @@ import numpy as np
 
 import os
 import pathlib
-
-# import util
     
 # FUNCTION DEFINITIONS
 def load_model(model_class, name, device):
@@ -103,7 +101,8 @@ def main(network, subject, trainset, testset, retrained, n_control_models, learn
         device = 'cpu'
 
     # Load the model to be tested for the presence of a potential backdoor
-    subject_model = load_model(network, subject, device)
+    # subject_model = load_model(network, subject, device)
+    subject_model = subject
     subject_model_weights = get_weights_from_model(subject_model)
     subject_fc3_weights = subject_model_weights['fc3.weight'][0]
     subject_fc3_bias = subject_model_weights['fc3.bias'][0]
