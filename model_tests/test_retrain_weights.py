@@ -22,11 +22,8 @@ import numpy as np
 
 import os
 import pathlib
-
-# Load model definitions
-import models
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
-
+    
 # FUNCTION DEFINITIONS
 def load_model(model_class, name, device):
     model = model_class()
@@ -93,7 +90,17 @@ def test(model, dataloader, loss_fn, device, verbose=False):
 
     return accuracy, loss
 
-def main(network, class_definition, subject, trainset, testset, retrained, n_control_models, learning_rate=0.001, epochs=30, threshold=0.10, verbose=False):
+def main(network, 
+         subject, 
+         trainset, 
+         testset, 
+         retrained, 
+         n_control_models, 
+         model_string,
+         learning_rate=0.001, 
+         epochs=30, 
+         threshold=0.10, 
+         verbose=False):
     """Load subject model and get subject model's summary and weights"""
 
     # Device selection - includes Apple Silicon
@@ -105,10 +112,8 @@ def main(network, class_definition, subject, trainset, testset, retrained, n_con
         device = 'cpu'
 
     # Load the model to be tested for the presence of a potential backdoor
+    # subject_model = load_model(network, subject, device)
     subject_model = subject
-    subject_model_weights = get_weights_from_model(subject_model)
-    subject_fc3_weights = subject_model_weights['fc3.weight'][0]
-    subject_fc3_bias = subject_model_weights['fc3.bias'][0]
 
     """Retrain subject model"""
     train_kwargs = {'batch_size': 100, 'shuffle':True}
@@ -118,14 +123,17 @@ def main(network, class_definition, subject, trainset, testset, retrained, n_con
 
     """Testing subject model against clean test data"""
 
-    subject_test_accuracy, subject_test_loss = test(subject_model,test_loader,nn.CrossEntropyLoss(),device,verbose)
+    subject_test_accuracy, _ = test(subject_model,test_loader,nn.CrossEntropyLoss(),device,verbose)
+    print(f'Subject model test accuracy: {subject_test_accuracy}\n')
 
     """Retraining subject model for testing"""
     
     retrain_models = []
     for n in range(n_control_models): # Number of control models to build to check for deviation
         FORCE_RETRAIN = True # Only set to True if you want to retrain the model
-        if not os.path.exists(retrained+str(n)+'.pt') or FORCE_RETRAIN:
+        path = retrained+str(n)+'.pt'
+        print(f'\nModel path: {path}')
+        if not os.path.exists(path) or FORCE_RETRAIN:
             if verbose:
                 print(f'Training #{n+1} of {n_control_models} models')
             retrain_model = network.to(device)
@@ -142,11 +150,17 @@ def main(network, class_definition, subject, trainset, testset, retrained, n_con
                 if accuracy > best_accuracy:
                     if verbose:
                         print(f'Saving model with new best accuracy: {accuracy:.4f}')
-                    save_model(retrain_model, retrained+str(n)+'.pt')
+                    save_model(retrain_model, path)
                     best_accuracy = accuracy
         
         # Regardless of whether we retrained the model, load it so we have the best model saved
-        retrain_model = load_model(network, retrained+str(n)+'.pt', device=device)
+        
+        if model_string == 'MNIST':
+            retrain_model = load_model(MNISTNet, path, device=device)
+        elif model_string =='CIFAR10':
+            retrain_model = load_model(CIFAR10Net, path, device=device)
+        else:
+            retrain_model = load_model(CIFAR100Net, path,device=device)
         retrain_models.append(retrain_model)
 
     """Compare weights and biases of the feature vector layer."""
@@ -154,18 +168,32 @@ def main(network, class_definition, subject, trainset, testset, retrained, n_con
     test(retrain_model,test_loader,nn.CrossEntropyLoss(),device, verbose)
     
     # TEST DIFFERENCES BETWEEN RETRAINED MODELS
-    subject_model = retrain_models[1]
+    retrain_models[1] = subject_model
     subject_model_weights = get_weights_from_model(subject_model)
-    subject_fc3_weights = subject_model_weights['fc3.weight'][0]
-    subject_fc3_bias = subject_model_weights['fc3.bias'][0]
+    
+    if model_string == 'MNIST':
+        subject_weights = subject_model_weights['fc4.weight']
+        subject_bias = subject_model_weights['fc4.bias']
+        retrain_params = retrain_model.state_dict()
+        retrain_weights = retrain_params['fc4.weight'][0]
+        retrain_bias = retrain_params['fc4.bias'][0]
+    
+    elif model_string == 'CIFAR10':
+        subject_weights = subject_model_weights['fc3.weight'][0]
+        subject_bias = subject_model_weights['fc3.bias'][0]
+        retrain_params = retrain_model.state_dict()
+        retrain_weights = retrain_params['fc3.weight'][0]
+        retrain_bias = retrain_params['fc3.bias'][0]
+    
+    else:
+        subject_weights = subject_model_weights['res2.1.1.weight'][0]
+        subject_bias = subject_model_weights['res2.1.1.bias'][0]
+        retrain_params = retrain_model.state_dict()
+        retrain_weights = retrain_params['res2.1.1.weight'][0]
+        retrain_bias = retrain_params['res2.1.1.bias'][0]
 
-    """The accuracy and loss of the retrained model is better than the subject model. To investigate the weights of the final linear layer further."""
-    retrain_params = retrain_model.state_dict()
-    retrain_fc3_weights = retrain_params['fc3.weight'][0]
-    retrain_fc3_bias = retrain_params['fc3.bias'][0]
-
-    Weight_delta = retrain_fc3_weights-subject_fc3_weights
-    Bias_delta = retrain_fc3_bias-subject_fc3_bias
+    Weight_delta = retrain_weights-subject_weights
+    Bias_delta = retrain_bias-subject_bias
 
     q75, q25 = np.percentile(Weight_delta.to('cpu').numpy(), [75 ,25])
     iqr = q75 - q25
@@ -183,11 +211,13 @@ def main(network, class_definition, subject, trainset, testset, retrained, n_con
     num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
     percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
     if verbose:
-        print(f'Number of outlier neurons: {num_outlier_neurons.item()}')
-        print(f'Percentage of outlier neurons: {percent_outlier_neurons.item()*100:.2f}%')
-
+        for i, num in enumerate(list(num_outlier_neurons.numpy())):
+            print(f'Number of outlier neurons for class {i}: {num}')
+        for i, num in enumerate(list(percent_outlier_neurons.numpy())):
+            print(f'Number of outlier neurons for class {i}: {num*100:.2f}%')
+        
     if verbose:
-        if percent_outlier_neurons > threshold:
+        if any (percent_outlier_neurons) > threshold:
             backdoor = True
             print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
         else:
