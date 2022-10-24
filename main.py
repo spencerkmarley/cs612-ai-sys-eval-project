@@ -61,8 +61,8 @@ elif TEST_CASE == 2:
 elif TEST_CASE == 3:
     model_string = "CIFAR100"
     network_definition = CIFAR100Net()
-    benign_model_file_path = "models/benign/benign_CIFAR100.pt"
-    # subject_model_file_path = "models/subject/.pt"
+    benign_model_file_path = "models/benign/CIFAR100_seed3.pt"
+    subject_model_file_path = "models/subject/CIFAR100_bn_BD5.pt"
     retrained_model_file_path = "./models/retrained/retrained_CIFAR100_"
     trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
@@ -89,7 +89,8 @@ print("Testing the " + model_string + " model for backdoors...")
 
 # Retrain the subject model and test the weights to deteremine if there is a back door
 try:
-    rt.main(network=network_definition, subject=subject_model, trainset=trainset, testset=testset, retrained=retrained_model_file_path, n_control_models=N_CONTROL_MODELS, learning_rate=LEARNING_RATE, epochs=EPOCHS, threshold=THRESHOLD, verbose=VERBOSE)
+    backdoor = rt.main(network=network_definition, subject=subject_model, trainset=trainset, testset=testset, retrained=retrained_model_file_path, n_control_models=N_CONTROL_MODELS, learning_rate=LEARNING_RATE, epochs=EPOCHS, threshold=THRESHOLD, verbose=VERBOSE)
+    print(backdoor)
 except:
     print("Retraining the subject model and testing the weights failed")
 
