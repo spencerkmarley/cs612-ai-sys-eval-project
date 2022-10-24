@@ -22,7 +22,11 @@ import numpy as np
 
 import os
 import pathlib
-    
+
+# Load model definitions
+import models
+from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
+
 # FUNCTION DEFINITIONS
 def load_model(model_class, name, device):
     model = model_class()
@@ -89,7 +93,7 @@ def test(model, dataloader, loss_fn, device, verbose=False):
 
     return accuracy, loss
 
-def main(network, subject, trainset, testset, retrained, n_control_models, learning_rate=0.001, epochs=30, threshold=0.10, verbose=False):
+def main(network, class_definition, subject, trainset, testset, retrained, n_control_models, learning_rate=0.001, epochs=30, threshold=0.10, verbose=False):
     """Load subject model and get subject model's summary and weights"""
 
     # Device selection - includes Apple Silicon
@@ -101,7 +105,6 @@ def main(network, subject, trainset, testset, retrained, n_control_models, learn
         device = 'cpu'
 
     # Load the model to be tested for the presence of a potential backdoor
-    # subject_model = load_model(network, subject, device)
     subject_model = subject
     subject_model_weights = get_weights_from_model(subject_model)
     subject_fc3_weights = subject_model_weights['fc3.weight'][0]
@@ -143,7 +146,7 @@ def main(network, subject, trainset, testset, retrained, n_control_models, learn
                     best_accuracy = accuracy
         
         # Regardless of whether we retrained the model, load it so we have the best model saved
-        retrain_model = load_model(network, retrained+str(n)+'.pt',device=device)
+        retrain_model = load_model(network, retrained+str(n)+'.pt', device=device)
         retrain_models.append(retrain_model)
 
     """Compare weights and biases of the feature vector layer."""

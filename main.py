@@ -40,30 +40,33 @@ TEST_CASE = 2
 
 if TEST_CASE == 1:
     model_string = "MNIST"
-    network_definition = MNISTNet()
-    benign_model_file_path = "models/benign/mnist.pt"
-    subject_model_file_path = "models/subject/mnist_backdoored_1.pt"
-    retrained_model_file_path = "./models/retrained/retrained_mnist_"
+    network_definition = MNISTNet
+    class_definition = MNISTNet()
+    benign_model_file_path = "models/benign/mnist.pt" # use "models/" not "./models"
+    subject_model_file_path = "models/subject/mnist_backdoored_1.pt" # use "models/" not "./models"
+    retrained_model_file_path = "./models/retrained/retrained_mnist_" # use "./models/" not "models"
     trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = True
     
 elif TEST_CASE == 2:
     model_string = "CIFAR10"
-    network_definition = CIFAR10Net()
-    benign_model_file_path = "models/benign/benign_CIFAR10.pt"
-    subject_model_file_path = "models/subject/best_model_CIFAR10_10BD.pt"
-    retrained_model_file_path = "./models/retrained/retrained_CIFAR10_10BD_"
+    network_definition = CIFAR10Net
+    class_definition = CIFAR10Net()
+    benign_model_file_path = "models/benign/benign_CIFAR10.pt" # use "models/" not "./models"
+    subject_model_file_path = "models/subject/best_model_CIFAR10_10BD.pt" # use "models/" not "./models"
+    retrained_model_file_path = "./models/retrained/retrained_CIFAR10_10BD_" # use "./models/" not "models"
     trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = False
 
 elif TEST_CASE == 3:
     model_string = "CIFAR100"
-    network_definition = CIFAR100Net()
-    benign_model_file_path = "models/benign/CIFAR100_seed3.pt"
-    subject_model_file_path = "models/subject/CIFAR100_bn_BD5.pt"
-    retrained_model_file_path = "./models/retrained/retrained_CIFAR100_"
+    network_definition = CIFAR100Net
+    class_definition = CIFAR100Net()
+    benign_model_file_path = "models/benign/CIFAR100_seed3.pt" # use "models/" not "./models"
+    subject_model_file_path = "models/subject/CIFAR100_bn_BD5.pt" # use "models/" not "./models"
+    retrained_model_file_path = "./models/retrained/retrained_CIFAR100_" # use "./models/" not "models"
     trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = False
@@ -78,17 +81,17 @@ LEARNING_RATE = 0.001
 EPOCHS = 1 # 30
 
 # Import benign model
-benign_model = network_definition
+benign_model = network_definition()
 benign_model.load_state_dict(torch.load(benign_model_file_path, map_location=device))
 
 # Import subject model
-subject_model = network_definition
+subject_model = network_definition()
 subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=device))
 
 print("Testing the " + model_string + " model for backdoors...")
 
 # Retrain the subject model and test the weights to deteremine if there is a back door
-backdoor = rt.main(network=network_definition, subject=subject_model, trainset=trainset, testset=testset, retrained=retrained_model_file_path, n_control_models=N_CONTROL_MODELS, learning_rate=LEARNING_RATE, epochs=EPOCHS, threshold=THRESHOLD, verbose=VERBOSE)
+backdoor = rt.main(network=network_definition(), class_definition=class_definition, subject=subject_model, trainset=trainset, testset=testset, retrained=retrained_model_file_path, n_control_models=N_CONTROL_MODELS, learning_rate=LEARNING_RATE, epochs=EPOCHS, threshold=THRESHOLD, verbose=VERBOSE)
 print(backdoor)
 
 # Test robustness of model using robustness.py tests to determine if there is a backdoor
