@@ -88,22 +88,16 @@ subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=d
 print("Testing the " + model_string + " model for backdoors...")
 
 # Retrain the subject model and test the weights to deteremine if there is a back door
-try:
-    backdoor = rt.main(network=network_definition, subject=subject_model, trainset=trainset, testset=testset, retrained=retrained_model_file_path, n_control_models=N_CONTROL_MODELS, learning_rate=LEARNING_RATE, epochs=EPOCHS, threshold=THRESHOLD, verbose=VERBOSE)
-    print(backdoor)
-except:
-    print("Retraining the subject model and testing the weights failed")
+backdoor = rt.main(network=network_definition, subject=subject_model, trainset=trainset, testset=testset, retrained=retrained_model_file_path, n_control_models=N_CONTROL_MODELS, learning_rate=LEARNING_RATE, epochs=EPOCHS, threshold=THRESHOLD, verbose=VERBOSE)
+print(backdoor)
 
 # Test robustness of model using robustness.py tests to determine if there is a backdoor
 robustness_test_results = []
 for i in range(13):
-    try:
-        robust = rb.test_robust(benign=benign_model, subject=subject_model, dataset=testset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, mnist=mnist, verbose=VERBOSE)
-        robustness_test_results.append(robust)
-        print(robust)
-    except:
-        print("Robustness test " + str(i) + " failed")
-
+    robust = rb.test_robust(benign=benign_model, subject=subject_model, dataset=testset, test=i, num_img=NUM_IMG, eps=EPS, threshold=THRESHOLD, mnist=mnist, verbose=VERBOSE)
+    robustness_test_results.append(robust)
+    print("Robustness test " + str(i) + ": " + str(robust))
+    
 # TODO How do we want to decide if it is robust or not? Must it pass all tests? Or we do grand vote?
 robustness = max(set(robustness_test_results), key=robustness_test_results.count)
 
