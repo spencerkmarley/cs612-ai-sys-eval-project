@@ -223,15 +223,15 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     save_filename = os.path.join('models', 'retrained', save_filename)
 
     if model == "MNIST":
-      print("No retrain architecture available") # TODO remove this once below completed
-      # model_teacher = retrain_model(
-      # base_model_filename = subject_model_filename,
-      # retrain_arch = CIFAR10Net, # TODO add retrain architecture
-      # train_loader = train_loader,
-      # test_loader = test_loader,
-      # force_retrain = force_retrain,
-      # save_filename = save_filename
-      # )
+      print("No student and teacher models available") # TODO remove this once below completed
+      model_teacher = retrain_model(
+      base_model_filename = subject_model_filename,
+      retrain_arch = MNISTNet,
+      train_loader = train_loader,
+      test_loader = test_loader,
+      force_retrain = force_retrain,
+      save_filename = save_filename
+      )
       # model_student = load_model(CIFAR10Net_AT, subject_model_filename) # TODO add student model
       # model_teacher = load_model(CIFAR10Net_AT, save_filename) # TODO add teacher model
     elif model == "CIFAR10":
@@ -246,15 +246,15 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       model_student = load_model(CIFAR10Net_AT, subject_model_filename)
       model_teacher = load_model(CIFAR10Net_AT, save_filename)
     elif model == "CIFAR100":
-      print("No retrain architecture available") # TODO remove this once below completed
-      # model_teacher = retrain_model(
-      # base_model_filename = subject_model_filename,
-      # retrain_arch = CIFAR10Net, # TODO add retrain architecture
-      # train_loader = train_loader,
-      # test_loader = test_loader,
-      # force_retrain = force_retrain,
-      # save_filename = save_filename
-      # )
+      print("No student and teacher models available") # TODO remove this once below completed
+      model_teacher = retrain_model(
+      base_model_filename = subject_model_filename,
+      retrain_arch = CIFAR100Net,
+      train_loader = train_loader,
+      test_loader = test_loader,
+      force_retrain = force_retrain,
+      save_filename = save_filename
+      )
       # model_student = load_model(CIFAR10Net_AT, subject_model_filename) # TODO add student model
       # model_teacher = load_model(CIFAR10Net_AT, save_filename) # TODO add teacher model
 
