@@ -1,33 +1,26 @@
-
 import torch
 from torch import nn
 from torch import linalg as LA
-from torch.utils.data import TensorDataset, DataLoader, Dataset
-from torchvision.transforms import ToTensor
+from torch import Tensor
+
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils.data import DataLoader, Dataset
+
 import torchvision
+from torchvision.transforms import ToTensor
 from torchvision import datasets, transforms
-import random
+
 import numpy as np
-import matplotlib.pyplot as plt
-from datetime import datetime
-from torch import Tensor
-# #from typing import Any
-# get_ipython().run_line_magic('matplotlib', 'inline')
+
+import os
 import sys
 sys.path.append('../')
-import os 
 
 # Load model definitions
-import models
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 
-# import models.definitions.CIFAR100Net as CIFAR100
-# import models.definitions.CIFAR10Net as CIFAR10
-# import models.definitions.MNISTNet as MNIST
-
-# Class names for CIFAR10
+# Class names
 class_names_MNIST=['0','1','2','3','4','5','6','7','8','9']
 class_names_CIFAR10 = ['airplane', 'automobile', 'bird', 'cat', 'deer','dog', 'frog', 'horse', 'ship', 'truck']
 class_names_CIFAR100 =['beaver',	'dolphin',	'otter',	'seal',	'whale',
@@ -51,9 +44,7 @@ class_names_CIFAR100 =['beaver',	'dolphin',	'otter',	'seal',	'whale',
 'bicycle',	'bus',	'motorcycle',	'pickup truck',	'truck',
 'lawn-mower',	'rocket',	'streetcar',	'tank',	'tractor']
 
-
 model_map={'CIFAR10':CIFAR10Net, 'CIFAR100':CIFAR100Net, 'MNIST':MNISTNet}
-# model_map={'CIFAR10':CIFAR10, 'CIFAR100':CIFAR100, 'MNIST':MNIST}
 triggersize_map={'CIFAR10':32, 'CIFAR100':32, 'MNIST':28}
 dim_map={'CIFAR10':3, 'CIFAR100':3, 'MNIST':1}
 trigger_type_map={'CIFAR10':[1,2], 'CIFAR100':[1,2], 'MNIST':[2]}
@@ -63,7 +54,6 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 if not os.path.isdir('../backdoor_triggers'):
     os.makedirs('../backdoor_triggers')
 lr=0.01
-
 
 # Defining L norms
 
@@ -81,6 +71,7 @@ def linf_norm(x, y=0):
     """ Compute the L-inf norm between two tensors """
     res = torch.max(torch.abs(x - y))
     return res
+
 def MAD_anomaly_index(X): #X is a list of numbers (L1, L2 etc)
     Xm = np.median(X)
     devs = X-Xm
@@ -89,14 +80,15 @@ def MAD_anomaly_index(X): #X is a list of numbers (L1, L2 etc)
     degree_of_anomaly = devs/MAD #<-2
     return degree_of_anomaly #,(degree_of_anomaly<-2).sum()
 
-
 def save_model(model, name):
     torch.save(model.state_dict(), name)
+
 def load_model(model_class, name):
     model = model_class()
     model.load_state_dict(torch.load(name))
 
     return model
+
 def generate_trigger(model, dataloader, delta_0,loss_fn, optimizer, device, bdtype):
     #returns the trigger after this iteration
     #delta_0 is the input trigger after last iteration
@@ -128,6 +120,7 @@ def generate_trigger(model, dataloader, delta_0,loss_fn, optimizer, device, bdty
             loss, current = loss.item(), batch * len(x)
             print('loss: {:.4f} [{}/{}]'.format(loss, current, size))
     return delta
+
 def test_trigger(model, dataloader,delta, loss_fn, device):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)

@@ -50,6 +50,7 @@ if TEST_CASE == 1:
     trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = True
+    CIFAR100 = False
     
 elif TEST_CASE == 2:
     model_string = "CIFAR10"
@@ -60,6 +61,7 @@ elif TEST_CASE == 2:
     trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = False
+    CIFAR100 = False
 
 elif TEST_CASE == 3:
     model_string = "CIFAR100"
@@ -70,6 +72,7 @@ elif TEST_CASE == 3:
     trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = False
+    CIFAR100 = True
 
 # Set parameters
 NUM_IMG = 10
@@ -90,41 +93,51 @@ subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=d
 
 print("Testing the " + model_string + " model for backdoors...")
 
-# Retrain the subject model and test the weights to deteremine if there is a back door
-backdoor = rt.main(network=network_definition, 
-                   subject=subject_model, 
-                   trainset=trainset, 
-                   testset=testset, 
-                   retrained=retrained_model_file_path, 
-                   n_control_models=N_CONTROL_MODELS, 
-                   model_string = model_string,
-                   learning_rate=LEARNING_RATE, 
-                   epochs=EPOCHS, 
-                   threshold=THRESHOLD, 
-                   verbose=VERBOSE
-                   )
-print(backdoor)
+TO_TEST = 4
 
-# Test robustness of model using robustness.py tests to determine if there is a backdoor
-robustness_test_results = []
-for i in range(13):
-    robust = rb.test_robust(benign=benign_model, 
-                            subject=subject_model, 
-                            dataset=testset, 
-                            test=i, 
-                            num_img=NUM_IMG, 
-                            eps=EPS, 
-                            threshold=THRESHOLD, 
-                            mnist=mnist, 
-                            verbose=VERBOSE)
-    robustness_test_results.append(robust)
-    print("Robustness test " + str(i) + ": " + str(robust))
-    
-# TODO How do we want to decide if it is robust or not? Must it pass all tests? Or we do grand vote?
-robustness = max(set(robustness_test_results), key=robustness_test_results.count)
+if TO_TEST == 1:
+    # Retrain the subject model and test the weights to deteremine if there is a back door
+    backdoor = rt.main(network=network_definition, 
+                    subject=subject_model, 
+                    trainset=trainset, 
+                    testset=testset, 
+                    retrained=retrained_model_file_path, 
+                    n_control_models=N_CONTROL_MODELS, 
+                    model_string = model_string,
+                    learning_rate=LEARNING_RATE, 
+                    epochs=EPOCHS, 
+                    threshold=THRESHOLD, 
+                    verbose=VERBOSE
+                    )
+    print(backdoor)
 
-# Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
-# backdoor_forgetting.ipynb
+elif TO_TEST == 2:
+    # Test robustness of model using robustness.py tests to determine if there is a backdoor
+    robustness_test_results = []
+    for i in range(13):
+        robust = rb.test_robust(benign=benign_model, 
+                                subject=subject_model, 
+                                dataset=testset, 
+                                test=i, 
+                                num_img=NUM_IMG, 
+                                eps=EPS, 
+                                threshold=THRESHOLD, 
+                                mnist=mnist, 
+                                verbose=VERBOSE)
+        robustness_test_results.append(robust)
+        print("Robustness test " + str(i) + ": " + str(robust))
 
-# Regenerate the trigger
-# trigger_synthesis standard.py
+    # TODO How do we want to decide if it is robust or not? Must it pass all tests? Or we do grand vote?
+    robustness = max(set(robustness_test_results), key=robustness_test_results.count)
+
+elif TO_TEST == 3:
+    # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
+    # backdoor_forgetting.ipynb
+    classes_with_backdoors = []
+
+elif TO_TEST == 4:
+    # Regenerate the trigger
+    trigger = tss.func_trigger_synthesis(MODELNAME, MODELCLASS=model_string, CLASSES=[i for i in range(10)], CIFAR100=CIFAR100)[0]
+
+    'mnist_backdoored_1'
+    'cifar10_backdoored_1'
