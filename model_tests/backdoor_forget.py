@@ -28,13 +28,13 @@ FORCE_RETRAIN = True
 #
 # Function definitions
 #
-def has_backdoor(subject_model, test_model, threshold=0.1):
+def has_backdoor(subject_model, test_model, test_loader, device, threshold=0.1):
   '''
   testing_model: a .pt model, the finetuned subject_model
   threshold: percentage [0,1] threshold to flag whether a class could have a backdoor
   test_type: a string, 'Gaussian noised', 'randomly switching off neurons', 'neural attention distilled'
   '''
-  percent_diff = prediction_variance(subject_model, test_model)
+  percent_diff = prediction_variance(subject_model, test_model, test_loader, device)
   percent_diff = dict(sorted(percent_diff.items(), key=lambda item: abs(item[1]),reverse=True))
 
   print('Percentage difference in inferences:')
@@ -53,7 +53,7 @@ def has_backdoor(subject_model, test_model, threshold=0.1):
     
   return backdoored_classes
 
-def prediction_variance(subject_model, test_model):
+def prediction_variance(subject_model, test_model, test_loader, device):
   '''
   Computes the prediction difference between the subject model and the test model.
   Returns a dictionary of the absolute difference in the range of [0,1]
@@ -69,6 +69,7 @@ def retrain_model(
   base_model_filename,  # Location of the base PyTorch model to be loaded from file
   retrain_arch,  # Model architecture to retrain - found in models/definitions
   train_loader,  # Training data loader
+  test_loader,  # Test data loader
   save_filename = None,  # Location to save the retrained model
   device = None,  # Device to use for training (if None, use get_pytorch_device())
   epochs = 30,  # Training epochs
@@ -146,10 +147,11 @@ def backdoor_forget():
     base_model_filename = subject_model_filename,
     retrain_arch = CIFAR10_Noise_Net,
     train_loader = train_loader,
+    test_loader = test_loader,
     force_retrain = FORCE_RETRAIN,
   )
 
-  backdoored_classes = has_backdoor(subject_model, model_noise)
+  backdoored_classes = has_backdoor(subject_model, model_noise, test_loader, device)
   if len(backdoored_classes):
       print('The subject model likely has a backdoor')
       print(backdoored_classes)
@@ -165,10 +167,11 @@ def backdoor_forget():
     base_model_filename = subject_model_filename,
     retrain_arch = CIFAR10Net_NeuronsOff,
     train_loader = train_loader,
+    test_loader = test_loader,
     force_retrain = FORCE_RETRAIN,
   )
 
-  backdoored_classes = has_backdoor(subject_model, model_NeuronsOff)
+  backdoored_classes = has_backdoor(subject_model, model_NeuronsOff, test_loader, device)
   if len(backdoored_classes):
       print('The subject model likely has a backdoor')
       print(backdoored_classes)
@@ -187,6 +190,7 @@ def backdoor_forget():
     base_model_filename = subject_model_filename,
     retrain_arch = CIFAR10Net,
     train_loader = train_loader,
+    test_loader = test_loader,
     force_retrain = FORCE_RETRAIN,
     save_filename = save_filename
   )
@@ -224,7 +228,7 @@ def backdoor_forget():
 
   model_Student = load_model(CIFAR10Net, save_filename)
 
-  backdoored_classes = has_backdoor(subject_model, model_Student)
+  backdoored_classes = has_backdoor(subject_model, model_Student, test_loader, device)
   if len(backdoored_classes):
       print('The subject model likely has a backdoor')
       print(backdoored_classes)
