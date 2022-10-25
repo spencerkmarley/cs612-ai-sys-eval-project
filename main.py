@@ -137,7 +137,7 @@ elif TO_TEST == 3:
 
 elif TO_TEST == 4:
     # Regenerate the trigger
-    trigger = tss.func_trigger_synthesis(MODELNAME, MODELCLASS=model_string, CLASSES=[i for i in range(10)], CIFAR100=CIFAR100)[0]
+    trigger = tss.func_trigger_synthesis('mnist_backdoored_1', MODELCLASS=model_string, CLASSES=[i for i in range(10)], CIFAR100=CIFAR100)[0]
 
-    'mnist_backdoored_1'
-    'cifar10_backdoored_1'
+    
+    # 'cifar10_backdoored_1'
