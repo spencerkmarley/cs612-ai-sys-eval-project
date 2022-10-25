@@ -139,9 +139,9 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
   pred_distribution = util.model.get_pred_distribution(subject_model, test_loader, device)
   print(f'Class distribution from inference of clean model: {pred_distribution}\n\n')
 
-  TO_TEST = 1
+  TO_TEST = 0
 
-  if TO_TEST == 1:
+  if TO_TEST == 0 or TO_TEST == 1:
     # TEST 1 - Gaussian noise
     print('TEST 1: Adding Noise Layer')
 
@@ -167,7 +167,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     else:
         print('The subject model does not have a backdoor')
 
-  elif TO_TEST == 2:
+  elif TO_TEST == 0 or TO_TEST == 2:
     # TEST 2 - Randomly switch off neurons
     print('TEST 2: Turning Neurons Off')
 
@@ -192,7 +192,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     else:
       print('The subject model does not have a backdoor')
 
-  elif TO_TEST == 3:
+  elif TO_TEST == 0 or TO_TEST == 3:
     # TEST 3 - Neural Attention Distillation
     print('TEST 3: Neural Attention Distillation')
 
@@ -272,9 +272,9 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
 if __name__ == '__main__':
     data_file_path = "./data/"
     
-    TEST_CASE = 1
+    TEST_CASE = 0
 
-    if TEST_CASE == 1:
+    if TEST_CASE == 0 or TEST_CASE == 1:
       # Load the subject model
       subject_model_filename = "./models/subject/mnist_backdoored_1.pt"
       subject_model = MNISTNet()
@@ -283,7 +283,7 @@ if __name__ == '__main__':
       testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
       model = "MNIST"
     
-    elif TEST_CASE == 2:
+    elif TEST_CASE == 0 or TEST_CASE == 2:
       # Load the subject model
       subject_model_filename = "./models/subject/best_model_CIFAR10_10BD.pt"
       subject_model = CIFAR10Net()
@@ -292,7 +292,7 @@ if __name__ == '__main__':
       testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
       model = "CIFAR10"
     
-    elif TEST_CASE == 3:
+    elif TEST_CASE == 0 or TEST_CASE == 3:
       # Load the subject model
       subject_model_filename = "./models/subject/CIFAR100_bn_BD5.pt"
       subject_model = CIFAR100Net()
