@@ -103,7 +103,7 @@ backdoor = rt.main(network=network_definition,
                    threshold=THRESHOLD, 
                    verbose=VERBOSE
                    )
-print(backdoor)
+print(f'\nSubject model has weights backdoor: {backdoor}')
 
 # Test robustness of model using robustness.py tests to determine if there is a backdoor
 robustness_test_results = []
