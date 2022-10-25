@@ -113,7 +113,7 @@ def create_save_filename(base_model_filename, retrain_arch, suffix = None):
 def backdoor_forget():
   # Load the subject model
   from models.definitions import CIFAR10Net
-  subject_model_filename = 'models/subject/best_model_CIFAR10_10BD.pt'
+  subject_model_filename = './models/subject/best_model_CIFAR10_10BD.pt'
   subject_model = open_model(subject_model_filename)
 
   # subject_model = load_model(CIFAR10Net, subject_model_filename)

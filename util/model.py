@@ -26,7 +26,7 @@ def open_model(model_filename, device=None):
     model_file = torch.load(model_filename, map_location=get_pytorch_device())
     
     # Check which class it belongs
-    for model_arch in [MNISTNet, CIFAR10Net, CIFAR100Net, MNISTNet]:
+    for model_arch in [MNISTNet, CIFAR10Net, CIFAR100Net]:
         try:
             model = model_arch()
             model.load_state_dict(model_file)
