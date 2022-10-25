@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader
 
 from torchvision import datasets, transforms
 from torchsummary import summary
-from main import TEST_CASE
 
 # Add paths
 sys.path.append('.')
@@ -120,7 +119,7 @@ def create_save_filename(base_model_filename, retrain_arch, suffix = None):
     new_filename = filename_stem + '__' + suffix + '.pt'
   return new_filename
 
-def backdoor_forget(model, subject_model, trainset, testset):
+def backdoor_forget(model, subject_model, subject_model_filename, trainset, testset):
 
   device = get_pytorch_device()
 
@@ -335,4 +334,4 @@ if __name__ == '__main__':
       testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
       model = "CIFAR100"
 
-    backdoor_forget(model, subject_model, trainset, testset)
+    backdoor_forget(model, subject_model, subject_model_filename, trainset, testset)

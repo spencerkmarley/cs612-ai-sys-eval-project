@@ -139,6 +139,7 @@ elif TO_TEST == 3:
     # backdoor_forgetting.ipynb
     cbd = bd.backdoor_forget(model=model_string,
                             subject_model=subject_model,
+                            subject_model_filename=subject_model_file_path,
                             trainset=trainset,
                             testset=testset
     )
