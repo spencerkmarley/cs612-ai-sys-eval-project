@@ -52,8 +52,7 @@ if TEST_CASE == 1:
     testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = True
     CIFAR100 = False
-    
-    
+
 elif TEST_CASE == 2:
     model_string = "CIFAR10"
     network_definition = CIFAR10Net()
