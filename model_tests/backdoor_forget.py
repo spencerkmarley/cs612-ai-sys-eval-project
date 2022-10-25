@@ -123,6 +123,8 @@ def create_save_filename(base_model_filename, retrain_arch, suffix = None):
 
 def backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN):
 
+  backdoored_classes_a, backdoored_classes_b, backdoored_classes_c = [], [], []
+
   device = get_pytorch_device()
 
   # Train and test arguments
@@ -160,14 +162,14 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       force_retrain = force_retrain
       )
     
-    backdoored_classes = has_backdoor(subject_model, model_noise, test_loader, device)
-    if len(backdoored_classes):
+    backdoored_classes_a = has_backdoor(subject_model, model_noise, test_loader, device)
+    if len(backdoored_classes_a):
         print('The subject model likely has a backdoor')
-        print(backdoored_classes)
+        print(backdoored_classes_a)
     else:
         print('The subject model does not have a backdoor')
 
-  elif TO_TEST == 0 or TO_TEST == 2:
+  if TO_TEST == 0 or TO_TEST == 2:
     # TEST 2 - Randomly switch off neurons
     print('TEST 2: Turning Neurons Off')
 
@@ -185,14 +187,14 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       force_retrain = force_retrain
       )
     
-    backdoored_classes = has_backdoor(subject_model, model_NeuronsOff, test_loader, device)
-    if len(backdoored_classes):
+    backdoored_classes_b = has_backdoor(subject_model, model_NeuronsOff, test_loader, device)
+    if len(backdoored_classes_b):
       print('The subject model likely has a backdoor')
-      print(backdoored_classes)
+      print(backdoored_classes_b)
     else:
       print('The subject model does not have a backdoor')
 
-  elif TO_TEST == 0 or TO_TEST == 3:
+  if TO_TEST == 0 or TO_TEST == 3:
     # TEST 3 - Neural Attention Distillation
     print('TEST 3: Neural Attention Distillation')
 
@@ -260,14 +262,14 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     elif model == "CIFAR100":
       model_student = load_model(CIFAR100Net, save_filename)
 
-    backdoored_classes = has_backdoor(subject_model, model_student, test_loader, device)
-    if len(backdoored_classes):
+    backdoored_classes_c = has_backdoor(subject_model, model_student, test_loader, device)
+    if len(backdoored_classes_c):
       print('The subject model likely has a backdoor')
-      print(backdoored_classes)
+      print(backdoored_classes_c)
     else:
       print('The subject model does not have a backdoor')
     
-  return backdoored_classes
+  return backdoored_classes_a, backdoored_classes_b, backdoored_classes_c
 
 if __name__ == '__main__':
     data_file_path = "./data/"
@@ -282,8 +284,9 @@ if __name__ == '__main__':
       trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
       testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
       model = "MNIST"
+      backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN)
     
-    elif TEST_CASE == 0 or TEST_CASE == 2:
+    if TEST_CASE == 0 or TEST_CASE == 2:
       # Load the subject model
       subject_model_filename = "./models/subject/best_model_CIFAR10_10BD.pt"
       subject_model = CIFAR10Net()
@@ -291,8 +294,9 @@ if __name__ == '__main__':
       trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
       testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
       model = "CIFAR10"
+      backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN)
     
-    elif TEST_CASE == 0 or TEST_CASE == 3:
+    if TEST_CASE == 0 or TEST_CASE == 3:
       # Load the subject model
       subject_model_filename = "./models/subject/CIFAR100_bn_BD5.pt"
       subject_model = CIFAR100Net()
@@ -300,5 +304,4 @@ if __name__ == '__main__':
       trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
       testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
       model = "CIFAR100"
-
-    backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN)
+      backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN)
