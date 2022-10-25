@@ -40,7 +40,7 @@ else:
 data_file_path = "data/"
 
 # Provide test cases
-TEST_CASE = 2
+TEST_CASE = 1
 
 if TEST_CASE == 1:
     model_string = "MNIST"
@@ -98,7 +98,7 @@ subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=d
 
 print("Testing the " + model_string + " model for backdoors...")
 
-TO_TEST = 3
+TO_TEST = 4
 
 if TO_TEST == 1:
     # Retrain the subject model and test the weights to deteremine if there is a back door
