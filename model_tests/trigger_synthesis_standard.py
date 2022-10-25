@@ -218,11 +218,11 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
     if  len(outliers)>0:
         for i in outliers:
             torch.save(triggers1[i], TRIGGERS + f"_class_{i}.pt")
-        print("Infected Classes: ",outliers)
+        print("Infected Classes: ", outliers)
 
         print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in outliers)))
         print("trigger saved in folder ../backdoor_triggers")
-        #How to load: t=torch.load( f"backdoor_triggers/{MODELNAME}_class_{i}.pt",map_location=torch.device('cpu')).detach().numpy()
+        #How to load: t=torch.load(TRIGGERS + f"_class_{i}.pt", map_location=torch.device('cpu')).detach().numpy()
     return outliers, acc1
 
 if __name__ == '__main__':
