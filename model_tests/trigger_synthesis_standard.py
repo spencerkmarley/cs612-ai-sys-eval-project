@@ -51,8 +51,6 @@ trigger_type_map={'CIFAR10':[1,2], 'CIFAR100':[1,2], 'MNIST':[2]}
 class_names_map={'CIFAR10':class_names_CIFAR10, 'CIFAR100':class_names_CIFAR100, 'MNIST':class_names_MNIST}
 epochs_map={'CIFAR10':4 ,'CIFAR100':3, 'MNIST':2}
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-if not os.path.isdir('../backdoor_triggers'):
-    os.makedirs('../backdoor_triggers')
 lr=0.01
 
 # Defining L norms
@@ -213,11 +211,14 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
     #outliers according to attack accuracy - backdoored classes usually have higher accuracy 
     acc_outliers=[CLASSES[i] for i in range(len(CLASSES)) if acc_anom[i] and acc1[CLASSES[i]]>0.5]
 
+    if not os.path.isdir(TRIGGERS):
+        os.makedirs(TRIGGERS)
+
     if  len(outliers)==0:
         outliers.extend(acc_outliers)
     if  len(outliers)>0:
         for i in outliers:
-            torch.save(triggers1[i], TRIGGERS + f"_class_{i}.pt")
+            torch.save(triggers1[i], TRIGGERS + f"/class_{i}.pt")
         print("Infected Classes: ", outliers)
 
         print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in outliers)))
@@ -226,6 +227,6 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
     return outliers, acc1
 
 if __name__ == '__main__':
-    mnist_backdoored_classes = func_trigger_synthesis(MODELNAME="models/subject/mnist_backdoored_1.pt", MODELCLASS='MNIST', CLASSES=[i for i in range(10)], CIFAR100=False)[0]
-    # cifar_10_backdoored_classes = func_trigger_synthesis(MODELNAME="models/subject/best_model_CIFAR10_10BD.pt", MODELCLASS='CIFAR10', CLASSES=[i for i in range(10)], CIFAR100=False)[0]
-    # cifar_100_backdoored_classes = func_trigger_synthesis(MODELNAME="models/subject/CIFAR100_bn_BD5.pt", MODELCLASS='CIFAR100', CLASSES=[i for i in range(100)], CIFAR100=True)[0]
+    mnist_backdoored_classes = func_trigger_synthesis(MODELNAME="models/subject/mnist_backdoored_1.pt", MODELCLASS='MNIST', TRIGGERS="./backdoor_triggers/mnist_backdoored_1/", CLASSES=[i for i in range(10)], CIFAR100=False)[0]
+    # cifar_10_backdoored_classes = func_trigger_synthesis(MODELNAME="models/subject/best_model_CIFAR10_10BD.pt", MODELCLASS='CIFAR10', TRIGGERS="./backdoor_triggers/best_model_CIFAR10_10BD/", CLASSES=[i for i in range(10)], CIFAR100=False)[0]
+    # cifar_100_backdoored_classes = func_trigger_synthesis(MODELNAME="models/subject/CIFAR100_bn_BD5.pt", MODELCLASS='CIFAR100', TRIGGERS="./backdoor_triggers/CIFAR100_bn_BD5/", CLASSES=[i for i in range(100)], CIFAR100=True)[0]

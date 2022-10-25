@@ -47,7 +47,7 @@ if TEST_CASE == 1:
     benign_model_file_path = "models/benign/mnist.pt"
     subject_model_file_path = "models/subject/mnist_backdoored_1.pt"
     retrained_model_file_path = "./models/retrained/retrained_mnist_"
-    triggers = "./backdoor_triggers/mnist_backdoored_1/mnist_backdoored_1"
+    triggers = "./backdoor_triggers/mnist_backdoored_1/"
     trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = True
@@ -59,6 +59,7 @@ elif TEST_CASE == 2:
     benign_model_file_path = "models/benign/benign_CIFAR10.pt"
     subject_model_file_path = "models/subject/best_model_CIFAR10_10BD.pt"
     retrained_model_file_path = "./models/retrained/retrained_CIFAR10_10BD_"
+    triggers = "./backdoor_triggers/best_model_CIFAR10_10BD/"
     trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = False
@@ -70,6 +71,7 @@ elif TEST_CASE == 3:
     benign_model_file_path = "models/benign/CIFAR100_seed3.pt"
     subject_model_file_path = "models/subject/CIFAR100_bn_BD5.pt"
     retrained_model_file_path = "./models/retrained/retrained_CIFAR100_"
+    triggers = "./backdoor_triggers/CIFAR100_bn_BD5/"
     trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = False
