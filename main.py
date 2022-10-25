@@ -98,7 +98,7 @@ subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=d
 
 print("Testing the " + model_string + " model for backdoors...")
 
-TO_TEST = 4
+TO_TEST = 3
 
 if TO_TEST == 1:
     # Retrain the subject model and test the weights to deteremine if there is a back door

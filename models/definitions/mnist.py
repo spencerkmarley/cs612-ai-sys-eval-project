@@ -50,7 +50,7 @@ class MNIST_Noise_Net(nn.Module):
 
     def forward(self, x):
         x = torch.flatten(x, 1)
-        add_noise(self.fc1.weight, self.noise_conv1)
+        add_noise(self.fc1.weight, self.noise_fc1)
         x = self.fc1(x)
         x = F.relu(x)
         x = self.fc2(x)
