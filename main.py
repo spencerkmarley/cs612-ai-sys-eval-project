@@ -88,7 +88,7 @@ LEARNING_RATE = 0.001
 EPOCHS = 1 # 30
 FORCE_RETRAIN = True
 
-TO_TEST = 1
+TO_TEST = 0
 
 def main():
     # Import benign model
