@@ -137,10 +137,19 @@ elif TO_TEST == 2:
 elif TO_TEST == 3:
     # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
     # backdoor_forgetting.ipynb
-    cbd = bd.backdoor_forget(subject=subject_model)
+    cbd = bd.backdoor_forget(model=model_string,
+                            subject_model=subject_model,
+                            trainset=trainset,
+                            testset=testset
+    )
     classes_with_backdoors = []
 
 elif TO_TEST == 4:
     # Regenerate the trigger
     # TODO CLASSES = the result from test above
-    trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path, MODELCLASS=model_string, TRIGGERS=triggers, CLASSES=[i for i in range(10)], CIFAR100=CIFAR100)[0]
+    trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path,
+                                        MODELCLASS=model_string,
+                                        TRIGGERS=triggers,
+                                        CLASSES=[i for i in range(10)],
+                                        CIFAR100=CIFAR100
+    )[0]

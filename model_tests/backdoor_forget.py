@@ -1,6 +1,7 @@
 import os
 import pathlib
 import sys
+from termios import TIOCPKT_DOSTOP
 import torch
 import torch.optim as optim
 
@@ -9,6 +10,7 @@ from torch.utils.data import DataLoader
 
 from torchvision import datasets, transforms
 from torchsummary import summary
+from main import TEST_CASE
 
 # Add paths
 sys.path.append('.')
@@ -119,15 +121,11 @@ def create_save_filename(base_model_filename, retrain_arch, suffix = None):
     new_filename = filename_stem + '__' + suffix + '.pt'
   return new_filename
 
-def backdoor_forget(subject_model):
+def backdoor_forget(model, subject_model, trainset, testset):
 
   # Train and test arguments
-  transform = transforms.ToTensor()
-
   train_kwargs = {'batch_size': 100, 'shuffle':True}
   test_kwargs = {'batch_size': 1000}
-  trainset = datasets.CIFAR10(root='data', train=True, download=True, transform=transform)
-  testset = datasets.CIFAR10(root='data', train=False, download=True, transform=transform)
   train_loader = torch.utils.data.DataLoader(trainset, **train_kwargs)
   test_loader = torch.utils.data.DataLoader(testset, **test_kwargs)
 
@@ -140,10 +138,15 @@ def backdoor_forget(subject_model):
   pred_distribution = util.model.get_pred_distribution(subject_model, test_loader, device)
   print(f'Class distribution from inference of clean model: {pred_distribution}\n\n')
 
-  #
   # TEST 1 - Gaussian noise
-  #
   print('TEST 1: Adding Noise Layer')
+  if model == "MNIST":
+    print("No retrain architecture available") # TODO add retrain architecture
+  elif model == "CIFAR10":
+    print("To do")
+  elif model == "CIFAR100":
+    print("No retrain architecture available") # TODO add retrain architecture
+
   model_noise = retrain_model(
     base_model_filename = subject_model_filename,
     retrain_arch = CIFAR10_Noise_Net,
@@ -160,10 +163,17 @@ def backdoor_forget(subject_model):
       print('The subject model does not have a backdoor')
   print()
 
-  #
   # TEST 2 - Randomly switch off neurons
-  #
   print('TEST 2: Turning Neurons Off')
+  if model == "MNIST":
+    print("No retrain architecture available") # TODO add retrain architecture
+  elif model == "CIFAR10":
+    print("To do")
+  elif model == "CIFAR100":
+    print("No retrain architecture available") # TODO add retrain architecture
+
+  
+  
   model_NeuronsOff = retrain_model(
     base_model_filename = subject_model_filename,
     retrain_arch = CIFAR10Net_NeuronsOff,
@@ -180,10 +190,20 @@ def backdoor_forget(subject_model):
       print('The subject model does not have a backdoor')
   print()
 
-  #
+
   # TEST 3 - Neural Attention Distillation
-  #
   print('TEST 3: Neural Attention Distillation')
+  if model == "MNIST":
+    print("No retrain architecture available") # TODO add retrain architecture
+  elif model == "CIFAR10":
+    print("To do")
+  elif model == "CIFAR100":
+    print("No retrain architecture available") # TODO add retrain architecture
+
+  #
+  # TEST 
+  #
+  
   save_filename = create_save_filename(subject_model_filename, None, 'NAD_Teacher')
   save_filename = os.path.join('models', 'retrained', save_filename)
 
@@ -197,9 +217,9 @@ def backdoor_forget(subject_model):
   )
 
   # Load the Student and Teacher models
-  model_Student = load_model(CIFAR10Net_AT, subject_model_filename)
+  model_student = load_model(CIFAR10Net_AT, subject_model_filename)
   model_Teacher = load_model(CIFAR10Net_AT, save_filename)
-  model_Student, model_Teacher = model_Student.to(device), model_Teacher.to(device)
+  model_student, model_Teacher = model_student.to(device), model_Teacher.to(device)
 
 
   # Train the student model 
@@ -216,20 +236,20 @@ def backdoor_forget(subject_model):
 
   FORCE_RETRAIN = False
   if FORCE_RETRAIN or not os.path.exists(save_filename):
-    optimizer = optim.Adam(model_Student.parameters(), lr = 0.001)
+    optimizer = optim.Adam(model_student.parameters(), lr = 0.001)
     epochs = 30
     best_accuracy = 0
     for epoch in range(epochs):
       print('\n------------- Epoch {} of student model training-------------\n'.format(epoch+1))
-      NAD_train(model_Student, model_Teacher, optimizer, criterionCl, criterionAT, train_loader)
-      accuracy = NAD_test(model_Student, test_loader)
+      NAD_train(model_student, model_Teacher, optimizer, criterionCl, criterionAT, train_loader)
+      accuracy = NAD_test(model_student, test_loader)
 
       if accuracy > best_accuracy:
-        save_model(model_Student, save_filename)
+        save_model(model_student, save_filename)
 
-  model_Student = load_model(CIFAR10Net, save_filename)
+  model_student = load_model(CIFAR10Net, save_filename)
 
-  backdoored_classes = has_backdoor(subject_model, model_Student, test_loader, device)
+  backdoored_classes = has_backdoor(subject_model, model_student, test_loader, device)
   if len(backdoored_classes):
       print('The subject model likely has a backdoor')
       print(backdoored_classes)
@@ -237,19 +257,35 @@ def backdoor_forget(subject_model):
       print('The subject model does not have a backdoor')
 
 if __name__ == '__main__':
-    # Load the subject model
-    subject_model_filename = "./models/subject/mnist_backdoored_1.pt"
-    subject_model = MNISTNet()
-    subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
+    data_file_path = "./data/"
     
-    # Load the subject model
-    subject_model_filename = "./models/subject/best_model_CIFAR10_10BD.pt"
-    subject_model = CIFAR10Net()
-    subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
+    TEST_CASE = 1
 
-    # Load the subject model
-    subject_model_filename = "./models/subject/CIFAR100_bn_BD5.pt"
-    subject_model = CIFAR100Net()
-    subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
+    if TEST_CASE == 1:
+      # Load the subject model
+      subject_model_filename = "./models/subject/mnist_backdoored_1.pt"
+      subject_model = MNISTNet()
+      subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
+      trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
+      testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
+      model = "MNIST"
+    
+    elif TEST_CASE == 2:
+      # Load the subject model
+      subject_model_filename = "./models/subject/best_model_CIFAR10_10BD.pt"
+      subject_model = CIFAR10Net()
+      subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
+      trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
+      testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
+      model = "CIFAR10"
+    
+    elif TEST_CASE == 3:
+      # Load the subject model
+      subject_model_filename = "./models/subject/CIFAR100_bn_BD5.pt"
+      subject_model = CIFAR100Net()
+      subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
+      trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
+      testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
+      model = "CIFAR100"
 
-    backdoor_forget(subject_model)
+    backdoor_forget(model, subject_model, trainset, testset)
