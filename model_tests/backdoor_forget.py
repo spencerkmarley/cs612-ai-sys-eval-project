@@ -144,6 +144,7 @@ def backdoor_forget(model, subject_model, trainset, testset):
   if TO_TEST == 1:
     # TEST 1 - Gaussian noise
     print('TEST 1: Adding Noise Layer')
+
     if model == "MNIST":
       print("No retrain architecture available") # TODO remove this once below completed
       # model_noise = retrain_model(
@@ -181,6 +182,7 @@ def backdoor_forget(model, subject_model, trainset, testset):
   elif TO_TEST == 2:
     # TEST 2 - Randomly switch off neurons
     print('TEST 2: Turning Neurons Off')
+
     if model == "MNIST":
       print("No retrain architecture available") # TODO remove this once below completed
       # model_NeuronsOff = retrain_model(
@@ -215,70 +217,89 @@ def backdoor_forget(model, subject_model, trainset, testset):
     else:
       print('The subject model does not have a backdoor')
 
+  elif TO_TEST == 3:
+    # TEST 3 - Neural Attention Distillation
+    print('TEST 3: Neural Attention Distillation')
 
-  # TEST 3 - Neural Attention Distillation
-  print('TEST 3: Neural Attention Distillation')
-  if model == "MNIST":
-    print("No retrain architecture available") # TODO add retrain architecture
-  elif model == "CIFAR10":
-    print("To do")
-  elif model == "CIFAR100":
-    print("No retrain architecture available") # TODO add retrain architecture
+    save_filename = create_save_filename(subject_model_filename, None, 'NAD_Teacher')
+    save_filename = os.path.join('models', 'retrained', save_filename)
 
-  #
-  # TEST 
-  #
-  
-  save_filename = create_save_filename(subject_model_filename, None, 'NAD_Teacher')
-  save_filename = os.path.join('models', 'retrained', save_filename)
+    if model == "MNIST":
+      print("No retrain architecture available") # TODO remove this once below completed
+      # model_teacher = retrain_model(
+      # base_model_filename = subject_model_filename,
+      # retrain_arch = CIFAR10Net, # TODO add retrain architecture
+      # train_loader = train_loader,
+      # test_loader = test_loader,
+      # force_retrain = FORCE_RETRAIN,
+      # save_filename = save_filename
+      # )
+      # model_student = load_model(CIFAR10Net_AT, subject_model_filename) # TODO add student model
+      # model_teacher = load_model(CIFAR10Net_AT, save_filename) # TODO add teacher model
+    elif model == "CIFAR10":
+      model_teacher = retrain_model(
+      base_model_filename = subject_model_filename,
+      retrain_arch = CIFAR10Net,
+      train_loader = train_loader,
+      test_loader = test_loader,
+      force_retrain = FORCE_RETRAIN,
+      save_filename = save_filename
+      )
+      model_student = load_model(CIFAR10Net_AT, subject_model_filename)
+      model_teacher = load_model(CIFAR10Net_AT, save_filename)
+    elif model == "CIFAR100":
+      print("No retrain architecture available") # TODO remove this once below completed
+      # model_teacher = retrain_model(
+      # base_model_filename = subject_model_filename,
+      # retrain_arch = CIFAR10Net, # TODO add retrain architecture
+      # train_loader = train_loader,
+      # test_loader = test_loader,
+      # force_retrain = FORCE_RETRAIN,
+      # save_filename = save_filename
+      # )
+      # model_student = load_model(CIFAR10Net_AT, subject_model_filename) # TODO add student model
+      # model_teacher = load_model(CIFAR10Net_AT, save_filename) # TODO add teacher model
 
-  model_Teacher = retrain_model(
-    base_model_filename = subject_model_filename,
-    retrain_arch = CIFAR10Net,
-    train_loader = train_loader,
-    test_loader = test_loader,
-    force_retrain = FORCE_RETRAIN,
-    save_filename = save_filename
-  )
+    model_student, model_teacher = model_student.to(device), model_teacher.to(device)
 
-  # Load the Student and Teacher models
-  model_student = load_model(CIFAR10Net_AT, subject_model_filename)
-  model_Teacher = load_model(CIFAR10Net_AT, save_filename)
-  model_student, model_Teacher = model_student.to(device), model_Teacher.to(device)
+    # Train the student model 
+    model_teacher.eval()
 
+    for param in model_teacher.parameters():
+      param.requires_grad = False
 
-  # Train the student model 
-  model_Teacher.eval()
+    criterionCl = nn.CrossEntropyLoss()
+    criterionAT = AT(p=2)
 
-  for param in model_Teacher.parameters():
-    param.requires_grad = False
+    save_filename = create_save_filename(subject_model_filename, None, 'NAD_Student')
+    save_filename = os.path.join('models', 'retrained', save_filename)
 
-  criterionCl = nn.CrossEntropyLoss()
-  criterionAT = AT(p=2)
+    FORCE_RETRAIN = False
+    
+    if FORCE_RETRAIN or not os.path.exists(save_filename):
+      optimizer = optim.Adam(model_student.parameters(), lr = 0.001)
+      epochs = 30
+      best_accuracy = 0
+      for epoch in range(epochs):
+        print('\n------------- Epoch {} of student model training-------------\n'.format(epoch+1))
+        NAD_train(model_student, model_teacher, optimizer, criterionCl, criterionAT, train_loader)
+        accuracy = NAD_test(model_student, test_loader)
 
-  save_filename = create_save_filename(subject_model_filename, None, 'NAD_Student')
-  save_filename = os.path.join('models', 'retrained', save_filename)
+        if accuracy > best_accuracy:
+          save_model(model_student, save_filename)
 
-  FORCE_RETRAIN = False
-  if FORCE_RETRAIN or not os.path.exists(save_filename):
-    optimizer = optim.Adam(model_student.parameters(), lr = 0.001)
-    epochs = 30
-    best_accuracy = 0
-    for epoch in range(epochs):
-      print('\n------------- Epoch {} of student model training-------------\n'.format(epoch+1))
-      NAD_train(model_student, model_Teacher, optimizer, criterionCl, criterionAT, train_loader)
-      accuracy = NAD_test(model_student, test_loader)
+    if model == "MNIST":
+      model_student = load_model(MNISTNet, save_filename)
+    elif model == "CIFAR10":
+      model_student = load_model(CIFAR10Net, save_filename)
+    elif model == "CIFAR100":
+      model_student = load_model(CIFAR100Net, save_filename)
 
-      if accuracy > best_accuracy:
-        save_model(model_student, save_filename)
-
-  model_student = load_model(CIFAR10Net, save_filename)
-
-  backdoored_classes = has_backdoor(subject_model, model_student, test_loader, device)
-  if len(backdoored_classes):
+    backdoored_classes = has_backdoor(subject_model, model_student, test_loader, device)
+    if len(backdoored_classes):
       print('The subject model likely has a backdoor')
       print(backdoored_classes)
-  else:
+    else:
       print('The subject model does not have a backdoor')
 
 if __name__ == '__main__':
