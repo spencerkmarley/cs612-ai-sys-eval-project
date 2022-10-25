@@ -88,71 +88,75 @@ LEARNING_RATE = 0.001
 EPOCHS = 1 # 30
 FORCE_RETRAIN = True
 
-# Import benign model
-benign_model = network_definition
-benign_model.load_state_dict(torch.load(benign_model_file_path, map_location=device))
+TO_TEST = 1
 
-# Import subject model
-subject_model = network_definition
-subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=device))
+def main():
+    # Import benign model
+    benign_model = network_definition
+    benign_model.load_state_dict(torch.load(benign_model_file_path, map_location=device))
 
-print("Testing the " + model_string + " model for backdoors...")
+    # Import subject model
+    subject_model = network_definition
+    subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=device))
 
-TO_TEST = 3
+    print("Testing the " + model_string + " model for backdoors...")
 
-if TO_TEST == 1:
-    # Retrain the subject model and test the weights to deteremine if there is a back door
-    backdoor = rt.main(network=network_definition, 
-                    subject=subject_model, 
-                    trainset=trainset, 
-                    testset=testset, 
-                    retrained=retrained_model_file_path, 
-                    n_control_models=N_CONTROL_MODELS, 
-                    model_string = model_string,
-                    learning_rate=LEARNING_RATE, 
-                    epochs=EPOCHS, 
-                    threshold=THRESHOLD, 
-                    verbose=VERBOSE
-                    )
-    print(backdoor)
+    if TO_TEST == 0 or TO_TEST == 1:
+        # Retrain the subject model and test the weights to deteremine if there is a back door
+        backdoor = rt.main(network=network_definition, 
+                        subject=subject_model, 
+                        trainset=trainset, 
+                        testset=testset, 
+                        retrained=retrained_model_file_path, 
+                        n_control_models=N_CONTROL_MODELS, 
+                        model_string = model_string,
+                        learning_rate=LEARNING_RATE, 
+                        epochs=EPOCHS, 
+                        threshold=THRESHOLD, 
+                        verbose=VERBOSE
+                        )
+        print(backdoor)
 
-elif TO_TEST == 2:
-    # Test robustness of model using robustness.py tests to determine if there is a backdoor
-    robustness_test_results = []
-    for i in range(13):
-        robust = rb.test_robust(benign=benign_model, 
-                                subject=subject_model, 
-                                dataset=testset, 
-                                test=i, 
-                                num_img=NUM_IMG, 
-                                eps=EPS, 
-                                threshold=THRESHOLD, 
-                                mnist=mnist, 
-                                verbose=VERBOSE)
-        robustness_test_results.append(robust)
-        print("Robustness test " + str(i) + ": " + str(robust))
+    if TO_TEST == 0 or TO_TEST == 2:
+        # Test robustness of model using robustness.py tests to determine if there is a backdoor
+        robustness_test_results = []
+        for i in range(13):
+            robust = rb.test_robust(benign=benign_model, 
+                                    subject=subject_model, 
+                                    dataset=testset, 
+                                    test=i, 
+                                    num_img=NUM_IMG, 
+                                    eps=EPS, 
+                                    threshold=THRESHOLD, 
+                                    mnist=mnist, 
+                                    verbose=VERBOSE)
+            robustness_test_results.append(robust)
+            print("Robustness test " + str(i) + ": " + str(robust))
 
-    # TODO How do we want to decide if it is robust or not? Must it pass all tests? Or we do grand vote?
-    robustness = max(set(robustness_test_results), key=robustness_test_results.count)
+        # TODO How do we want to decide if it is robust or not? Must it pass all tests? Or we do grand vote?
+        robustness = max(set(robustness_test_results), key=robustness_test_results.count)
 
-elif TO_TEST == 3:
-    # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
-    # backdoor_forgetting.ipynb
-    cbd = bd.backdoor_forget(model=model_string,
-                            subject_model=subject_model,
-                            subject_model_filename=subject_model_file_path,
-                            trainset=trainset,
-                            testset=testset,
-                            force_retrain=FORCE_RETRAIN
-    )
-    print(cbd)
+    if TO_TEST == 0 or TO_TEST == 3:
+        # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
+        cbd = bd.backdoor_forget(model=model_string,
+                                subject_model=subject_model,
+                                subject_model_filename=subject_model_file_path,
+                                trainset=trainset,
+                                testset=testset,
+                                force_retrain=FORCE_RETRAIN
+        )
+        print(cbd)
 
-elif TO_TEST == 4:
-    # Regenerate the trigger
-    # TODO CLASSES = cbd
-    trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path,
-                                        MODELCLASS=model_string,
-                                        TRIGGERS=triggers,
-                                        CLASSES=[i for i in range(10)],
-                                        CIFAR100=CIFAR100
-    )[0]
+    if TO_TEST == 0 or TO_TEST == 4:
+        # Regenerate the trigger
+        # TODO CLASSES = cbd
+        trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path,
+                                            MODELCLASS=model_string,
+                                            TRIGGERS=triggers,
+                                            CLASSES=[i for i in range(10)],
+                                            CIFAR100=CIFAR100
+        )[0]
+    return 0
+
+if __name__ == '__main__':
+    main()
