@@ -120,8 +120,9 @@ for i in range(13):
     robustness_test_results.append(robust)
     print("Robustness test " + str(i) + ": " + str(robust))
     
-# TODO How do we want to decide if it is robust or not? Must it pass all tests? Or we do grand vote?
+# Collate robustness test results.
 robustness = max(set(robustness_test_results), key=robustness_test_results.count)
+print(f'\nSubject model is robust:{robustness}')
 
 # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
 # backdoor_forgetting.ipynb
