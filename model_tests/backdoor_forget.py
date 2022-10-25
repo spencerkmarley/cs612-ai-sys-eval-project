@@ -19,17 +19,25 @@ from util import get_pytorch_device, open_model, load_model, save_model, train, 
 from util import NAD_train, NAD_test
 
 # Import models with perturbations
+from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 from models.definitions import CIFAR10_Noise_Net, CIFAR10Net_NeuronsOff, CIFAR10Net_AT
 from models.definitions import AT
+
+# Device selection - includes Apple Silicon
+if torch.cuda.is_available():
+    device = 'cuda'
+elif torch.backends.mps.is_available():
+    device = 'mps'
+else:
+    device = 'cpu'
 
 torch.manual_seed(42)
 FORCE_RETRAIN = True
 
-#
+
 # Function definitions
-#
 def has_backdoor(subject_model, test_model, test_loader, device, threshold=0.1):
-  '''
+  ''' TODO update these descriptions
   testing_model: a .pt model, the finetuned subject_model
   threshold: percentage [0,1] threshold to flag whether a class could have a backdoor
   test_type: a string, 'Gaussian noised', 'randomly switching off neurons', 'neural attention distilled'
@@ -111,14 +119,7 @@ def create_save_filename(base_model_filename, retrain_arch, suffix = None):
     new_filename = filename_stem + '__' + suffix + '.pt'
   return new_filename
 
-def backdoor_forget():
-  # Load the subject model
-  from models.definitions import CIFAR10Net
-  subject_model_filename = './models/subject/best_model_CIFAR10_10BD.pt'
-  subject_model = open_model(subject_model_filename)
-
-  # subject_model = load_model(CIFAR10Net, subject_model_filename)
-  # print(summary(subject_model,(3,32,32)))
+def backdoor_forget(subject_model):
 
   # Train and test arguments
   transform = transforms.ToTensor()
@@ -236,4 +237,19 @@ def backdoor_forget():
       print('The subject model does not have a backdoor')
 
 if __name__ == '__main__':
-    backdoor_forget()
+    # Load the subject model
+    subject_model_filename = "./models/subject/mnist_backdoored_1.pt"
+    subject_model = MNISTNet()
+    subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
+    
+    # Load the subject model
+    subject_model_filename = "./models/subject/best_model_CIFAR10_10BD.pt"
+    subject_model = CIFAR10Net()
+    subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
+
+    # Load the subject model
+    subject_model_filename = "./models/subject/CIFAR100_bn_BD5.pt"
+    subject_model = CIFAR100Net()
+    subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
+
+    backdoor_forget(subject_model)

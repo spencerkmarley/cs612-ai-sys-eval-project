@@ -137,7 +137,7 @@ elif TO_TEST == 2:
 elif TO_TEST == 3:
     # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
     # backdoor_forgetting.ipynb
-    cbd = bd.backdoor_forget()
+    cbd = bd.backdoor_forget(subject=subject_model)
     classes_with_backdoors = []
 
 elif TO_TEST == 4:
