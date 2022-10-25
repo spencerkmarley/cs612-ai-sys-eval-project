@@ -142,3 +142,6 @@ data/cifar-10-python.tar.gz
 benign_CIFAR10.pt
 benign_CIFAR100.pt
 .vscode/launch.json
+model_tests/data/cifar-100-python.tar.gz
+model_tests/data/cifar-10-python.tar.gz
+model_tests/data/cifar-100-python/train

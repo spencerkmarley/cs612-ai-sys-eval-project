@@ -13,15 +13,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 from torch import Tensor
-#from typing import Any
-get_ipython().run_line_magic('matplotlib', 'inline')
+# #from typing import Any
+# get_ipython().run_line_magic('matplotlib', 'inline')
 import sys
 sys.path.append('../')
 import os 
 
-import models.definitions.CIFAR100Net as CIFAR100
-import models.definitions.CIFAR10Net as CIFAR10
-import models.definitions.MNISTNet as MNIST
+# Load model definitions
+import models
+from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
+
+# import models.definitions.CIFAR100Net as CIFAR100
+# import models.definitions.CIFAR10Net as CIFAR10
+# import models.definitions.MNISTNet as MNIST
 
 # Class names for CIFAR10
 class_names_MNIST=['0','1','2','3','4','5','6','7','8','9']
@@ -48,7 +52,8 @@ class_names_CIFAR100 =['beaver',	'dolphin',	'otter',	'seal',	'whale',
 'lawn-mower',	'rocket',	'streetcar',	'tank',	'tractor']
 
 
-model_map={'CIFAR10':CIFAR10, 'CIFAR100':CIFAR100, 'MNIST':MNIST}
+model_map={'CIFAR10':CIFAR10Net, 'CIFAR100':CIFAR100Net, 'MNIST':MNISTNet}
+# model_map={'CIFAR10':CIFAR10, 'CIFAR100':CIFAR100, 'MNIST':MNIST}
 triggersize_map={'CIFAR10':32, 'CIFAR100':32, 'MNIST':28}
 dim_map={'CIFAR10':3, 'CIFAR100':3, 'MNIST':1}
 trigger_type_map={'CIFAR10':[1,2], 'CIFAR100':[1,2], 'MNIST':[2]}
