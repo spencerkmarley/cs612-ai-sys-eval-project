@@ -123,72 +123,97 @@ def create_save_filename(base_model_filename, retrain_arch, suffix = None):
 
 def backdoor_forget(model, subject_model, trainset, testset):
 
+  device = get_pytorch_device()
+
   # Train and test arguments
   train_kwargs = {'batch_size': 100, 'shuffle':True}
   test_kwargs = {'batch_size': 1000}
   train_loader = torch.utils.data.DataLoader(trainset, **train_kwargs)
   test_loader = torch.utils.data.DataLoader(testset, **test_kwargs)
 
-  device = get_pytorch_device()
-
   # Test the accuracy of the subject model loaded
   loss_fn = nn.CrossEntropyLoss()
   test(subject_model, test_loader, loss_fn, device)
 
+  # Get the class distrbution from inference of the clean model
   pred_distribution = util.model.get_pred_distribution(subject_model, test_loader, device)
   print(f'Class distribution from inference of clean model: {pred_distribution}\n\n')
 
-  # TEST 1 - Gaussian noise
-  print('TEST 1: Adding Noise Layer')
-  if model == "MNIST":
-    print("No retrain architecture available") # TODO add retrain architecture
-  elif model == "CIFAR10":
-    print("To do")
-  elif model == "CIFAR100":
-    print("No retrain architecture available") # TODO add retrain architecture
+  TO_TEST = 1
 
-  model_noise = retrain_model(
-    base_model_filename = subject_model_filename,
-    retrain_arch = CIFAR10_Noise_Net,
-    train_loader = train_loader,
-    test_loader = test_loader,
-    force_retrain = FORCE_RETRAIN,
-  )
+  if TO_TEST == 1:
+    # TEST 1 - Gaussian noise
+    print('TEST 1: Adding Noise Layer')
+    if model == "MNIST":
+      print("No retrain architecture available") # TODO remove this once below completed
+      # model_noise = retrain_model(
+      # base_model_filename = subject_model_filename,
+      # retrain_arch = CIFAR10_Noise_Net, # TODO add retrain architecture
+      # train_loader = train_loader,
+      # test_loader = test_loader,
+      # force_retrain = FORCE_RETRAIN,
+      # )
+    elif model == "CIFAR10":
+      model_noise = retrain_model(
+      base_model_filename = subject_model_filename,
+      retrain_arch = CIFAR10_Noise_Net,
+      train_loader = train_loader,
+      test_loader = test_loader,
+      force_retrain = FORCE_RETRAIN,
+      )
+    elif model == "CIFAR100":
+      print("No retrain architecture available") # TODO remove this once below completed
+      # model_noise = retrain_model(
+      # base_model_filename = subject_model_filename,
+      # retrain_arch = CIFAR10_Noise_Net, # TODO add retrain architecture
+      # train_loader = train_loader,
+      # test_loader = test_loader,
+      # force_retrain = FORCE_RETRAIN,
+      # )
+    
+    backdoored_classes = has_backdoor(subject_model, model_noise, test_loader, device)
+    if len(backdoored_classes):
+        print('The subject model likely has a backdoor')
+        print(backdoored_classes)
+    else:
+        print('The subject model does not have a backdoor')
 
-  backdoored_classes = has_backdoor(subject_model, model_noise, test_loader, device)
-  if len(backdoored_classes):
+  elif TO_TEST == 2:
+    # TEST 2 - Randomly switch off neurons
+    print('TEST 2: Turning Neurons Off')
+    if model == "MNIST":
+      print("No retrain architecture available") # TODO remove this once below completed
+      # model_NeuronsOff = retrain_model(
+      # base_model_filename = subject_model_filename,
+      # retrain_arch = CIFAR10Net_NeuronsOff, # TODO add retrain architecture
+      # train_loader = train_loader,
+      # test_loader = test_loader,
+      # force_retrain = FORCE_RETRAIN,
+      # )
+    elif model == "CIFAR10":
+      model_NeuronsOff = retrain_model(
+      base_model_filename = subject_model_filename,
+      retrain_arch = CIFAR10Net_NeuronsOff,
+      train_loader = train_loader,
+      test_loader = test_loader,
+      force_retrain = FORCE_RETRAIN,
+      )
+    elif model == "CIFAR100":
+      print("No retrain architecture available") # TODO remove this once below completed
+      # model_NeuronsOff = retrain_model(
+      # base_model_filename = subject_model_filename,
+      # retrain_arch = CIFAR10Net_NeuronsOff, # TODO add retrain architecture
+      # train_loader = train_loader,
+      # test_loader = test_loader,
+      # force_retrain = FORCE_RETRAIN,
+      # )
+    
+    backdoored_classes = has_backdoor(subject_model, model_NeuronsOff, test_loader, device)
+    if len(backdoored_classes):
       print('The subject model likely has a backdoor')
       print(backdoored_classes)
-  else:
+    else:
       print('The subject model does not have a backdoor')
-  print()
-
-  # TEST 2 - Randomly switch off neurons
-  print('TEST 2: Turning Neurons Off')
-  if model == "MNIST":
-    print("No retrain architecture available") # TODO add retrain architecture
-  elif model == "CIFAR10":
-    print("To do")
-  elif model == "CIFAR100":
-    print("No retrain architecture available") # TODO add retrain architecture
-
-  
-  
-  model_NeuronsOff = retrain_model(
-    base_model_filename = subject_model_filename,
-    retrain_arch = CIFAR10Net_NeuronsOff,
-    train_loader = train_loader,
-    test_loader = test_loader,
-    force_retrain = FORCE_RETRAIN,
-  )
-
-  backdoored_classes = has_backdoor(subject_model, model_NeuronsOff, test_loader, device)
-  if len(backdoored_classes):
-      print('The subject model likely has a backdoor')
-      print(backdoored_classes)
-  else:
-      print('The subject model does not have a backdoor')
-  print()
 
 
   # TEST 3 - Neural Attention Distillation
