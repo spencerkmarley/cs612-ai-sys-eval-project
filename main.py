@@ -47,10 +47,12 @@ if TEST_CASE == 1:
     benign_model_file_path = "models/benign/mnist.pt"
     subject_model_file_path = "models/subject/mnist_backdoored_1.pt"
     retrained_model_file_path = "./models/retrained/retrained_mnist_"
+    triggers = "./backdoor_triggers/mnist_backdoored_1/mnist_backdoored_1"
     trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = True
     CIFAR100 = False
+    
     
 elif TEST_CASE == 2:
     model_string = "CIFAR10"
@@ -137,4 +139,4 @@ elif TO_TEST == 3:
 
 elif TO_TEST == 4:
     # Regenerate the trigger
-    trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path, MODELCLASS=model_string, CLASSES=[i for i in range(10)], CIFAR100=CIFAR100)[0]
+    trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path, MODELCLASS=model_string, TRIGGERS=triggers, CLASSES=[i for i in range(10)], CIFAR100=CIFAR100)[0]

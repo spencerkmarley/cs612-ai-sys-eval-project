@@ -147,7 +147,7 @@ def test_trigger(model, dataloader,delta, loss_fn, device):
     
     return correct
 
-def func_trigger_synthesis(MODELNAME, MODELCLASS , CLASSES, CIFAR100=True):
+def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=True):
     """
     Example:
     MODELNAME='cifar10_backdoored_1' 
@@ -217,7 +217,7 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS , CLASSES, CIFAR100=True):
         outliers.extend(acc_outliers)
     if  len(outliers)>0:
         for i in outliers:
-            torch.save(triggers1[i],f"../backdoor_triggers/{MODELNAME}_class_{i}.pt")
+            torch.save(triggers1[i], TRIGGERS + f"_class_{i}.pt")
         print("Infected Classes: ",outliers)
 
         print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in outliers)))
