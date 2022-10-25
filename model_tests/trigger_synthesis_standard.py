@@ -222,7 +222,7 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
         print("Infected Classes: ", outliers)
 
         print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in outliers)))
-        print("trigger saved in folder ../backdoor_triggers")
+        print("trigger saved in folder " + TRIGGERS)
         #How to load: t=torch.load(TRIGGERS + f"_class_{i}.pt", map_location=torch.device('cpu')).detach().numpy()
     return outliers, acc1
 
