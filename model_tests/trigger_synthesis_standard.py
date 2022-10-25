@@ -160,7 +160,7 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
         CLASSES = list(range(0,10))
         
     TriggerSize=triggersize_map[MODELCLASS]
-    testmodel=load_model(model_map[MODELCLASS],  "../" + MODELNAME)
+    testmodel=load_model(model_map[MODELCLASS],  "./" + MODELNAME)
     testmodel=testmodel.to(device)
     transform = transforms.ToTensor()
     train_kwargs = {'batch_size': 100, 'shuffle':True}
