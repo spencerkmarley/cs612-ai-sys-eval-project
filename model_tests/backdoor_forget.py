@@ -36,7 +36,6 @@ else:
 torch.manual_seed(42)
 FORCE_RETRAIN = True
 
-
 # Function definitions
 def has_backdoor(subject_model, test_model, test_loader, device, threshold=0.1):
   ''' TODO update these descriptions
