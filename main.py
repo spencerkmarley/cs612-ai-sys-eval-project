@@ -142,11 +142,11 @@ elif TO_TEST == 3:
                             trainset=trainset,
                             testset=testset
     )
-    classes_with_backdoors = []
+    print(cbd)
 
 elif TO_TEST == 4:
     # Regenerate the trigger
-    # TODO CLASSES = the result from test above
+    # TODO CLASSES = cbd
     trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path,
                                         MODELCLASS=model_string,
                                         TRIGGERS=triggers,

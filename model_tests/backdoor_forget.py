@@ -275,7 +275,7 @@ def backdoor_forget(model, subject_model, trainset, testset):
     save_filename = os.path.join('models', 'retrained', save_filename)
 
     FORCE_RETRAIN = False
-    
+
     if FORCE_RETRAIN or not os.path.exists(save_filename):
       optimizer = optim.Adam(model_student.parameters(), lr = 0.001)
       epochs = 30
@@ -301,6 +301,8 @@ def backdoor_forget(model, subject_model, trainset, testset):
       print(backdoored_classes)
     else:
       print('The subject model does not have a backdoor')
+    
+  return backdoored_classes
 
 if __name__ == '__main__':
     data_file_path = "./data/"
