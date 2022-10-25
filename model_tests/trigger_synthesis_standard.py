@@ -169,12 +169,12 @@ def func_trigger_synthesis(MODELNAME,MODELCLASS,CLASSES,CIFAR100=True):
     optimizer = optim.Adam(testmodel.parameters(), lr=0.1) # not using optimizer here
     num_of_epochs = epochs_map[MODELCLASS]
     # to map dataset, add this block if need to re-download a fresh dataset
-    trainset_map={'CIFAR10':torchvision.datasets.CIFAR10(root='./data', train=True,download=True, transform=transform),
-                  'CIFAR100':torchvision.datasets.CIFAR100(root='./data', train=True,download=True, transform=transform),
-                  'MNIST':torchvision.datasets.MNIST(root='./data', train=True,download=True, transform=transform)}
-    testset_map={'CIFAR10':torchvision.datasets.CIFAR10(root='./data', train=False,download=True, transform=transform),
-                  'CIFAR100':torchvision.datasets.CIFAR100(root='./data', train=False,download=True, transform=transform),
-                  'MNIST':torchvision.datasets.MNIST(root='./data', train=False,download=True, transform=transform)}
+    trainset_map={'CIFAR10':torchvision.datasets.CIFAR10(root='../data', train=True,download=True, transform=transform),
+                  'CIFAR100':torchvision.datasets.CIFAR100(root='../data', train=True,download=True, transform=transform),
+                  'MNIST':torchvision.datasets.MNIST(root='../data', train=True,download=True, transform=transform)}
+    testset_map={'CIFAR10':torchvision.datasets.CIFAR10(root='../data', train=False,download=True, transform=transform),
+                  'CIFAR100':torchvision.datasets.CIFAR100(root='../data', train=False,download=True, transform=transform),
+                  'MNIST':torchvision.datasets.MNIST(root='../data', train=False,download=True, transform=transform)}
 
 
      # change to selected classes for CIFAR100 !!!
