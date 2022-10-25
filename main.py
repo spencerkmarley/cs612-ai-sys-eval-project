@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 # Import custom libraries
 from model_tests import robustness as rb
 from model_tests import test_retrain_weights as rt
+from model_tests import trigger_synthesis_standard as tss
 from models.train import train_mnist
 
 # Load model definitions
