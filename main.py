@@ -86,6 +86,7 @@ N_CONTROL_MODELS = 2
 VERBOSE = True
 LEARNING_RATE = 0.001
 EPOCHS = 1 # 30
+FORCE_RETRAIN = True
 
 # Import benign model
 benign_model = network_definition
@@ -141,7 +142,8 @@ elif TO_TEST == 3:
                             subject_model=subject_model,
                             subject_model_filename=subject_model_file_path,
                             trainset=trainset,
-                            testset=testset
+                            testset=testset,
+                            force_retrain=FORCE_RETRAIN
     )
     print(cbd)
 

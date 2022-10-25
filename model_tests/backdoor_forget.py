@@ -119,7 +119,7 @@ def create_save_filename(base_model_filename, retrain_arch, suffix = None):
     new_filename = filename_stem + '__' + suffix + '.pt'
   return new_filename
 
-def backdoor_forget(model, subject_model, subject_model_filename, trainset, testset):
+def backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN):
 
   device = get_pytorch_device()
 
@@ -150,7 +150,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       # retrain_arch = CIFAR10_Noise_Net, # TODO add retrain architecture
       # train_loader = train_loader,
       # test_loader = test_loader,
-      # force_retrain = FORCE_RETRAIN,
+      # force_retrain = force_retrain,
       # )
     elif model == "CIFAR10":
       model_noise = retrain_model(
@@ -158,7 +158,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       retrain_arch = CIFAR10_Noise_Net,
       train_loader = train_loader,
       test_loader = test_loader,
-      force_retrain = FORCE_RETRAIN,
+      force_retrain = force_retrain,
       )
     elif model == "CIFAR100":
       print("No retrain architecture available") # TODO remove this once below completed
@@ -167,7 +167,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       # retrain_arch = CIFAR10_Noise_Net, # TODO add retrain architecture
       # train_loader = train_loader,
       # test_loader = test_loader,
-      # force_retrain = FORCE_RETRAIN,
+      # force_retrain = force_retrain,
       # )
     
     backdoored_classes = has_backdoor(subject_model, model_noise, test_loader, device)
@@ -188,7 +188,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       # retrain_arch = CIFAR10Net_NeuronsOff, # TODO add retrain architecture
       # train_loader = train_loader,
       # test_loader = test_loader,
-      # force_retrain = FORCE_RETRAIN,
+      # force_retrain = force_retrain,
       # )
     elif model == "CIFAR10":
       model_NeuronsOff = retrain_model(
@@ -196,7 +196,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       retrain_arch = CIFAR10Net_NeuronsOff,
       train_loader = train_loader,
       test_loader = test_loader,
-      force_retrain = FORCE_RETRAIN,
+      force_retrain = force_retrain,
       )
     elif model == "CIFAR100":
       print("No retrain architecture available") # TODO remove this once below completed
@@ -205,7 +205,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       # retrain_arch = CIFAR10Net_NeuronsOff, # TODO add retrain architecture
       # train_loader = train_loader,
       # test_loader = test_loader,
-      # force_retrain = FORCE_RETRAIN,
+      # force_retrain = force_retrain,
       # )
     
     backdoored_classes = has_backdoor(subject_model, model_NeuronsOff, test_loader, device)
@@ -229,7 +229,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       # retrain_arch = CIFAR10Net, # TODO add retrain architecture
       # train_loader = train_loader,
       # test_loader = test_loader,
-      # force_retrain = FORCE_RETRAIN,
+      # force_retrain = force_retrain,
       # save_filename = save_filename
       # )
       # model_student = load_model(CIFAR10Net_AT, subject_model_filename) # TODO add student model
@@ -240,7 +240,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       retrain_arch = CIFAR10Net,
       train_loader = train_loader,
       test_loader = test_loader,
-      force_retrain = FORCE_RETRAIN,
+      force_retrain = force_retrain,
       save_filename = save_filename
       )
       model_student = load_model(CIFAR10Net_AT, subject_model_filename)
@@ -252,7 +252,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
       # retrain_arch = CIFAR10Net, # TODO add retrain architecture
       # train_loader = train_loader,
       # test_loader = test_loader,
-      # force_retrain = FORCE_RETRAIN,
+      # force_retrain = force_retrain,
       # save_filename = save_filename
       # )
       # model_student = load_model(CIFAR10Net_AT, subject_model_filename) # TODO add student model
@@ -272,9 +272,9 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     save_filename = create_save_filename(subject_model_filename, None, 'NAD_Student')
     save_filename = os.path.join('models', 'retrained', save_filename)
 
-    FORCE_RETRAIN = False
+    force_retrain = False
 
-    if FORCE_RETRAIN or not os.path.exists(save_filename):
+    if force_retrain or not os.path.exists(save_filename):
       optimizer = optim.Adam(model_student.parameters(), lr = 0.001)
       epochs = 30
       best_accuracy = 0
@@ -334,4 +334,4 @@ if __name__ == '__main__':
       testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
       model = "CIFAR100"
 
-    backdoor_forget(model, subject_model, subject_model_filename, trainset, testset)
+    backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN)
