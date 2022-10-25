@@ -160,7 +160,7 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS , CLASSES, CIFAR100=True):
         CLASSES = list(range(0,10))
         
     TriggerSize=triggersize_map[MODELCLASS]
-    testmodel=load_model(model_map[MODELCLASS],  f'../models/subject/{MODELNAME}.pt')
+    testmodel=load_model(model_map[MODELCLASS],  "../" + MODELNAME)
     testmodel=testmodel.to(device)
     transform = transforms.ToTensor()
     train_kwargs = {'batch_size': 100, 'shuffle':True}
@@ -175,7 +175,6 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS , CLASSES, CIFAR100=True):
     testset_map={'CIFAR10':torchvision.datasets.CIFAR10(root='../data', train=False,download=True, transform=transform),
                   'CIFAR100':torchvision.datasets.CIFAR100(root='../data', train=False,download=True, transform=transform),
                   'MNIST':torchvision.datasets.MNIST(root='../data', train=False,download=True, transform=transform)}
-
 
      # change to selected classes for CIFAR100 !!!
     triggers1={}
@@ -200,13 +199,12 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS , CLASSES, CIFAR100=True):
             test_acc=test_trigger(testmodel, trigger_test_loader,delta, nn.CrossEntropyLoss(), device)
         triggers1[TARGET]=delta
         acc1[TARGET]=test_acc
-    
-    
-# print(  "".join("{:10.2f}".format(l1_norm(triggers1[i]).item()) for i in range(10))  )
-# print(  "".join("{:10.2f}".format(l2_norm(triggers1[i]).item()) for i in range(10))  )
-# print(  "".join("{:10.2f}".format(linf_norm(triggers1[i]).item()) for i in range(10))  )
-# print("      "+"      ".join([str((abs(triggers1[i])>0.05).sum().item()) for i in range(10)]))
-# print("".join(["{:10.4f}".format(value) for key,value in acc1.items()]))
+
+    # print(  "".join("{:10.2f}".format(l1_norm(triggers1[i]).item()) for i in range(10))  )
+    # print(  "".join("{:10.2f}".format(l2_norm(triggers1[i]).item()) for i in range(10))  )
+    # print(  "".join("{:10.2f}".format(linf_norm(triggers1[i]).item()) for i in range(10))  )
+    # print("      "+"      ".join([str((abs(triggers1[i])>0.05).sum().item()) for i in range(10)]))
+    # print("".join(["{:10.4f}".format(value) for key,value in acc1.items()]))
     
     l1_anom= MAD_anomaly_index([l1_norm(triggers1[i]).item() for i in CLASSES]) <-2  
     acc_anom=MAD_anomaly_index([value for key,value in acc1.items()]) >2
@@ -228,9 +226,6 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS , CLASSES, CIFAR100=True):
     return outliers, acc1
 
 if __name__ == '__main__':
-    #cifar_backdoored_classes = func_trigger_synthesis('cifar10_backdoored_1','CIFAR10',[i for i in range(10)] )[0]
-    mnist_backdoored_classes = func_trigger_synthesis('mnist_backdoored_1','MNIST',[i for i in range(10)] )[0]
-    # run ad-hoc 
-        
-
-
+    mnist_backdoored_classes = func_trigger_synthesis(MODELNAME="models/subject/mnist_backdoored_1.pt", MODELCLASS='MNIST', CLASSES=[i for i in range(10)], CIFAR100=False)[0]
+    # cifar_10_backdoored_classes = func_trigger_synthesis(MODELNAME="models/subject/best_model_CIFAR10_10BD.pt", MODELCLASS='CIFAR10', CLASSES=[i for i in range(10)], CIFAR100=False)[0]
+    # cifar_100_backdoored_classes = func_trigger_synthesis(MODELNAME="models/subject/CIFAR100_bn_BD5.pt", MODELCLASS='CIFAR100', CLASSES=[i for i in range(100)], CIFAR100=True)[0]
