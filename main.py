@@ -138,4 +138,3 @@ elif TO_TEST == 3:
 elif TO_TEST == 4:
     # Regenerate the trigger
     trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path, MODELCLASS=model_string, CLASSES=[i for i in range(10)], CIFAR100=CIFAR100)[0]
-
