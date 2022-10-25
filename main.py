@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 # Import custom libraries
 from model_tests import robustness as rb
 from model_tests import test_retrain_weights as rt
+from model_tests import backdoor_forget as bd
 from model_tests import trigger_synthesis_standard as tss
 from models.train import train_mnist
 
@@ -39,7 +40,7 @@ else:
 data_file_path = "data/"
 
 # Provide test cases
-TEST_CASE = 1
+TEST_CASE = 2
 
 if TEST_CASE == 1:
     model_string = "MNIST"
@@ -96,7 +97,7 @@ subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=d
 
 print("Testing the " + model_string + " model for backdoors...")
 
-TO_TEST = 4
+TO_TEST = 3
 
 if TO_TEST == 1:
     # Retrain the subject model and test the weights to deteremine if there is a back door
@@ -136,6 +137,7 @@ elif TO_TEST == 2:
 elif TO_TEST == 3:
     # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
     # backdoor_forgetting.ipynb
+    cbd = bd.backdoor_forget()
     classes_with_backdoors = []
 
 elif TO_TEST == 4:

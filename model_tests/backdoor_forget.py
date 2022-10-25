@@ -53,7 +53,6 @@ def has_backdoor(subject_model, test_model, threshold=0.1):
     
   return backdoored_classes
 
-
 def prediction_variance(subject_model, test_model):
   '''
   Computes the prediction difference between the subject model and the test model.
@@ -65,37 +64,6 @@ def prediction_variance(subject_model, test_model):
   
   pred_diff = {x: abs(dist_test[x] - dist_subject[x])/dist_subject[x] if dist_subject[x] else 0 for x in dist_test}
   return pred_diff
-
-
-# Load the subject model
-from models.definitions import CIFAR10Net
-subject_model_filename = 'models/subject/best_model_CIFAR10_10BD.pt'
-subject_model = open_model(subject_model_filename)
-
-# subject_model = load_model(CIFAR10Net, subject_model_filename)
-# print(summary(subject_model,(3,32,32)))
-
-
-
-# Train and test arguments
-transform = transforms.ToTensor()
-
-train_kwargs = {'batch_size': 100, 'shuffle':True}
-test_kwargs = {'batch_size': 1000}
-trainset = datasets.CIFAR10(root='data', train=True, download=True, transform=transform)
-testset = datasets.CIFAR10(root='data', train=False, download=True, transform=transform)
-train_loader = torch.utils.data.DataLoader(trainset, **train_kwargs)
-test_loader = torch.utils.data.DataLoader(testset, **test_kwargs)
-
-device = get_pytorch_device()
-
-# Test the accuracy of the subject model loaded
-loss_fn = nn.CrossEntropyLoss()
-test(subject_model, test_loader, loss_fn, device)
-
-pred_distribution = util.model.get_pred_distribution(subject_model, test_loader, device)
-print(f'Class distribution from inference of clean model: {pred_distribution}\n\n')
-
 
 def retrain_model(
   base_model_filename,  # Location of the base PyTorch model to be loaded from file
@@ -132,8 +100,7 @@ def retrain_model(
         
   new_model = load_model(retrain_arch, save_filename)
   return new_model
-
-  
+ 
 def create_save_filename(base_model_filename, retrain_arch, suffix = None):
   """ Creates a filename for saving a retrained model """
   filename_stem = pathlib.Path(base_model_filename).stem
@@ -143,96 +110,126 @@ def create_save_filename(base_model_filename, retrain_arch, suffix = None):
     new_filename = filename_stem + '__' + suffix + '.pt'
   return new_filename
 
-#
-# TEST 1 - Gaussian noise
-#
-print('TEST 1: Adding Noise Layer')
-model_noise = retrain_model(
-  base_model_filename = subject_model_filename,
-  retrain_arch = CIFAR10_Noise_Net,
-  train_loader = train_loader,
-  force_retrain = FORCE_RETRAIN,
-)
+def backdoor_forget():
+  # Load the subject model
+  from models.definitions import CIFAR10Net
+  subject_model_filename = 'models/subject/best_model_CIFAR10_10BD.pt'
+  subject_model = open_model(subject_model_filename)
 
-backdoored_classes = has_backdoor(subject_model, model_noise)
-if len(backdoored_classes):
-    print('The subject model likely has a backdoor')
-    print(backdoored_classes)
-else:
-    print('The subject model does not have a backdoor')
-print()
+  # subject_model = load_model(CIFAR10Net, subject_model_filename)
+  # print(summary(subject_model,(3,32,32)))
 
-#
-# TEST 2 - Randomly switch off neurons
-#
-print('TEST 2: Turning Neurons Off')
-model_NeuronsOff = retrain_model(
-  base_model_filename = subject_model_filename,
-  retrain_arch = CIFAR10Net_NeuronsOff,
-  train_loader = train_loader,
-  force_retrain = FORCE_RETRAIN,
-)
+  # Train and test arguments
+  transform = transforms.ToTensor()
 
-backdoored_classes = has_backdoor(subject_model, model_NeuronsOff)
-if len(backdoored_classes):
-    print('The subject model likely has a backdoor')
-    print(backdoored_classes)
-else:
-    print('The subject model does not have a backdoor')
-print()
-    
-    
-#
-# TEST 3 - Neural Attention Distillation
-#
-print('TEST 3: Neural Attention Distillation')
-save_filename = create_save_filename(subject_model_filename, None, 'NAD_Teacher')
-save_filename = os.path.join('models', 'retrained', save_filename)
+  train_kwargs = {'batch_size': 100, 'shuffle':True}
+  test_kwargs = {'batch_size': 1000}
+  trainset = datasets.CIFAR10(root='data', train=True, download=True, transform=transform)
+  testset = datasets.CIFAR10(root='data', train=False, download=True, transform=transform)
+  train_loader = torch.utils.data.DataLoader(trainset, **train_kwargs)
+  test_loader = torch.utils.data.DataLoader(testset, **test_kwargs)
 
-model_Teacher = retrain_model(
-  base_model_filename = subject_model_filename,
-  retrain_arch = CIFAR10Net,
-  train_loader = train_loader,
-  force_retrain = FORCE_RETRAIN,
-  save_filename = save_filename
-)
+  device = get_pytorch_device()
 
-# Load the Student and Teacher models
-model_Student = load_model(CIFAR10Net_AT, subject_model_filename)
-model_Teacher = load_model(CIFAR10Net_AT, save_filename)
-model_Student, model_Teacher = model_Student.to(device), model_Teacher.to(device)
+  # Test the accuracy of the subject model loaded
+  loss_fn = nn.CrossEntropyLoss()
+  test(subject_model, test_loader, loss_fn, device)
+
+  pred_distribution = util.model.get_pred_distribution(subject_model, test_loader, device)
+  print(f'Class distribution from inference of clean model: {pred_distribution}\n\n')
+
+  #
+  # TEST 1 - Gaussian noise
+  #
+  print('TEST 1: Adding Noise Layer')
+  model_noise = retrain_model(
+    base_model_filename = subject_model_filename,
+    retrain_arch = CIFAR10_Noise_Net,
+    train_loader = train_loader,
+    force_retrain = FORCE_RETRAIN,
+  )
+
+  backdoored_classes = has_backdoor(subject_model, model_noise)
+  if len(backdoored_classes):
+      print('The subject model likely has a backdoor')
+      print(backdoored_classes)
+  else:
+      print('The subject model does not have a backdoor')
+  print()
+
+  #
+  # TEST 2 - Randomly switch off neurons
+  #
+  print('TEST 2: Turning Neurons Off')
+  model_NeuronsOff = retrain_model(
+    base_model_filename = subject_model_filename,
+    retrain_arch = CIFAR10Net_NeuronsOff,
+    train_loader = train_loader,
+    force_retrain = FORCE_RETRAIN,
+  )
+
+  backdoored_classes = has_backdoor(subject_model, model_NeuronsOff)
+  if len(backdoored_classes):
+      print('The subject model likely has a backdoor')
+      print(backdoored_classes)
+  else:
+      print('The subject model does not have a backdoor')
+  print()
+
+  #
+  # TEST 3 - Neural Attention Distillation
+  #
+  print('TEST 3: Neural Attention Distillation')
+  save_filename = create_save_filename(subject_model_filename, None, 'NAD_Teacher')
+  save_filename = os.path.join('models', 'retrained', save_filename)
+
+  model_Teacher = retrain_model(
+    base_model_filename = subject_model_filename,
+    retrain_arch = CIFAR10Net,
+    train_loader = train_loader,
+    force_retrain = FORCE_RETRAIN,
+    save_filename = save_filename
+  )
+
+  # Load the Student and Teacher models
+  model_Student = load_model(CIFAR10Net_AT, subject_model_filename)
+  model_Teacher = load_model(CIFAR10Net_AT, save_filename)
+  model_Student, model_Teacher = model_Student.to(device), model_Teacher.to(device)
 
 
-# Train the student model 
-model_Teacher.eval()
+  # Train the student model 
+  model_Teacher.eval()
 
-for param in model_Teacher.parameters():
-  param.requires_grad = False
+  for param in model_Teacher.parameters():
+    param.requires_grad = False
 
-criterionCl = nn.CrossEntropyLoss()
-criterionAT = AT(p=2)
+  criterionCl = nn.CrossEntropyLoss()
+  criterionAT = AT(p=2)
 
-save_filename = create_save_filename(subject_model_filename, None, 'NAD_Student')
-save_filename = os.path.join('models', 'retrained', save_filename)
+  save_filename = create_save_filename(subject_model_filename, None, 'NAD_Student')
+  save_filename = os.path.join('models', 'retrained', save_filename)
 
-FORCE_RETRAIN = False
-if FORCE_RETRAIN or not os.path.exists(save_filename):
-  optimizer = optim.Adam(model_Student.parameters(), lr = 0.001)
-  epochs = 30
-  best_accuracy = 0
-  for epoch in range(epochs):
-    print('\n------------- Epoch {} of student model training-------------\n'.format(epoch+1))
-    NAD_train(model_Student, model_Teacher, optimizer, criterionCl, criterionAT, train_loader)
-    accuracy = NAD_test(model_Student, test_loader)
+  FORCE_RETRAIN = False
+  if FORCE_RETRAIN or not os.path.exists(save_filename):
+    optimizer = optim.Adam(model_Student.parameters(), lr = 0.001)
+    epochs = 30
+    best_accuracy = 0
+    for epoch in range(epochs):
+      print('\n------------- Epoch {} of student model training-------------\n'.format(epoch+1))
+      NAD_train(model_Student, model_Teacher, optimizer, criterionCl, criterionAT, train_loader)
+      accuracy = NAD_test(model_Student, test_loader)
 
-    if accuracy > best_accuracy:
-      save_model(model_Student, save_filename)
+      if accuracy > best_accuracy:
+        save_model(model_Student, save_filename)
 
-model_Student = load_model(CIFAR10Net, save_filename)
+  model_Student = load_model(CIFAR10Net, save_filename)
 
-backdoored_classes = has_backdoor(subject_model, model_Student)
-if len(backdoored_classes):
-    print('The subject model likely has a backdoor')
-    print(backdoored_classes)
-else:
-    print('The subject model does not have a backdoor')
+  backdoored_classes = has_backdoor(subject_model, model_Student)
+  if len(backdoored_classes):
+      print('The subject model likely has a backdoor')
+      print(backdoored_classes)
+  else:
+      print('The subject model does not have a backdoor')
+
+if __name__ == '__main__':
+    backdoor_forget()
