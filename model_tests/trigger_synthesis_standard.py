@@ -89,19 +89,20 @@ def load_model(model_class, name):
 
     return model
 
-def generate_trigger(model, dataloader, delta_0,loss_fn, optimizer, device, bdtype):
+def generate_trigger(model, dataloader, delta_0, loss_fn, optimizer, device, bdtype):
     #returns the trigger after this iteration
     #delta_0 is the input trigger after last iteration
     size = len(dataloader.dataset)
     model.train()
     delta=delta_0.detach().clone().requires_grad_() #detach may not be needed
-    delta.retain_grad() #may not needed
+    delta.retain_grad() #may not be needed
     #print(delta.is_leaf)
     for batch, (x, y) in enumerate(dataloader):
         x, y = x.to(device), y.to(device)
         assert delta.requires_grad, "Error: requires_grad is false"
-        x_stamped=torch.add(x,delta) #from here delta is part of the graph
+        x_stamped=torch.add(x,delta) # from here delta is part of the graph
         pred = model(x_stamped)
+
         if bdtype=='MNIST':
             loss = loss_fn(pred, y) + l1_norm(delta)+(delta<0).type(torch.float32).sum()
         else:    
@@ -112,13 +113,16 @@ def generate_trigger(model, dataloader, delta_0,loss_fn, optimizer, device, bdty
         loss.backward(inputs=delta)#(retain_graph=True)
         #print(delta.grad.data.sum())
         #optimizer.step()
+        
         temp = delta.detach().clone()
         delta=(temp-(delta.grad*lr)).requires_grad_()
         #delta.grad.data.zero_()
+        
         if batch % 1000 == 0:
             #print(w_Trigger.is_leaf,w_Trigger.grad.data.sum())
             loss, current = loss.item(), batch * len(x)
             print('loss: {:.4f} [{}/{}]'.format(loss, current, size))
+    
     return delta
 
 def test_trigger(model, dataloader,delta, loss_fn, device):
@@ -127,6 +131,7 @@ def test_trigger(model, dataloader,delta, loss_fn, device):
     model.to(device)
     model.eval()
     loss, correct = 0.0, 0    
+    
     with torch.no_grad():
         for x, y in dataloader:
             x, y = x.to(device), y.to(device)
@@ -137,10 +142,12 @@ def test_trigger(model, dataloader,delta, loss_fn, device):
     
     loss /= num_batches
     correct /= size
+    
     print('Test Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}\n'.format(100 * correct, loss))
+    
     return correct
 
-def func_trigger_synthesis(MODELNAME,MODELCLASS,CLASSES,CIFAR100=True):
+def func_trigger_synthesis(MODELNAME, MODELCLASS , CLASSES, CIFAR100=True):
     """
     Example:
     MODELNAME='cifar10_backdoored_1' 
