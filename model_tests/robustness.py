@@ -2,6 +2,7 @@
 
 import random
 import math
+import os
 
 import torch
 
@@ -19,7 +20,7 @@ from torchvision import datasets, transforms
 
 import matplotlib.pyplot as plt
 
-from PIL import ImageDraw, ImageFont
+from PIL import ImageDraw, ImageFont, Image
 
 # Import other libraries
 import warnings
@@ -446,14 +447,69 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, ve
     
     return robust
 
+def compressImg(image, file, filepath = 'Compressed'):
+    if not os.path.exists(filepath):
+        os.makedirs(filepath)
+    # open the image
+    picture = ToPILImage()(torch.squeeze(image))
+    picture.save(os.path.join(filepath,"Compressed_"+str(file)),
+                 "JPEG", 
+                 optimize = True, 
+                 quality = 10)
+    return
+
 def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
-    Titus: Is this what you mean by compress? https://www.geeksforgeeks.org/how-to-compress-images-using-python-and-pil/
+    Compress 20% of images, save them as JPEG files and read them in again.
+    <By Titus>
     '''
     # Perturb some clean samples by compressing and decompressing
     if verbose:
         print("\nPerturbing by compressing and decompressing...")
-    pass
+    robust = True
+    
+    indices = random.sample(range(num_img), math.ceil(num_img*0.2))   
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+    filepath = 'Compressed'
+    
+    y_labels =[]
+    xs = []
+
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        if batch in indices:
+            compressImg(x, batch)
+            y_labels.append(y)
+            xs.append(x)
+    
+    fls = os.listdir(filepath)
+    
+    for i in range(len(fls)):
+        im = Image.open(os.path.join(filepath, fls[i]))
+        x_comp = torch.unsqueeze(torch.div(pil_to_tensor(im), 255),0)
+        x = xs[i]
+        prediction_benign, prediction_subject = benign(x), subject(x)
+        prediction_comp_benign, prediction_comp_subject = benign(x_comp), subject(x_comp)
+            
+        if prediction_comp_subject.argmax(1)!=prediction_subject.argmax(1):
+            discrepancies+=1
+                
+    if discrepancies/len(indices)>= threshold:
+        robust = False  
+    
+    if verbose:
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
+        if robust:
+            print("Model is robust")
+        else:
+            print("Model is not robust")
+    
+    #Clear folder
+    for fl in fls:
+        os.remove(os.path.join(filepath, fl))       
+    
+    return robust
 
 def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     # Perturb some clean samples by total var min
