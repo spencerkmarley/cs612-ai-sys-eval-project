@@ -11,7 +11,7 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from torch.utils.data import DataLoader
 from torchvision import datasets
-from torchvision.transforms import ToTensor, RandomRotation, RandomResizedCrop, ToPILImage, RandomCrop, Resize, RandomPosterize
+from torchvision.transforms import ToTensor, RandomRotation, RandomResizedCrop, ToPILImage, RandomCrop, Resize, RandomPosterize, RandomEqualize
 from torchvision.transforms.functional import invert, adjust_brightness, pil_to_tensor, posterize
 
 import torch.nn.functional as F
@@ -513,10 +513,47 @@ def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, th
 
 
 def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
-    # Perturb some clean samples by total var min
+    '''
+    Perturb 20% of clean samples by equalizing histogram of pixels.
+    
+    <By Titus>
+    '''
+    # Perturb some clean samples by random histogram equilibrating
     if verbose:
-        print("\nPerturbing by total var min...")
-    pass
+        print("\nPerturbing by equalizing histogram of pixels...")
+    robust = True
+    
+    #We sample images amounting to 20% of the dataset and rotate them
+    indices = random.sample(range(num_img), math.ceil(num_img*0.2))   
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        if batch in indices:
+            sourceTensor = (x*255).clone()
+            c = torch.tensor(sourceTensor, dtype = torch.uint8) #necessary for posterize function
+            
+            equalizer = RandomEqualize()
+            c_eq = equalizer(c)
+            x_eq = torch.div(c_eq, 255) #Must normalize, but this converts dtype back to float tensor.
+            prediction_benign, prediction_subject = benign(x), subject(x)
+            prediction_eq_benign, prediction_eq_subject = benign(x_eq), subject(x_eq)
+            
+            if prediction_eq_subject.argmax(1)!=prediction_subject.argmax(1):
+                discrepancies+=1
+        
+    if discrepancies/len(indices)>= threshold:
+        robust = False  
+    
+    if verbose:
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
+        if robust:
+            print("Model is robust")
+        else:
+            print("Model is not robust")       
+    
+    return robust
 
 class AddGaussianNoise(object):
     '''
