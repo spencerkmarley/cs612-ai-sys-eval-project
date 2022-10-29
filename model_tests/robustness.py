@@ -302,13 +302,52 @@ def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=Fa
 
 def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     '''
-    Titus: This function might be a problem because the networks are trained to take in 
-    image of a specific dimension right?
+    Perturb 20% of clean samples by resizing and padding
+
+    <By Titus>
     '''
-    # Perturb some clean samples by resizing
+    # Perturb some clean samples by cropping and rescaling
     if verbose:
         print("\nPerturbing by resizing...")
-    pass
+    robust = True
+    
+    #We sample images amounting to 20% of the dataset and rotate them
+    indices = random.sample(range(num_img), math.ceil(num_img*0.2))
+    
+    test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
+    _, _, shape = next(iter(test_loader))[0][0].shape
+    
+    pad = random.randint(1,math.ceil(0.2*shape))
+    cropper = RandomCrop(size = (shape-pad,shape-pad),
+                         padding = pad)
+    
+    discrepancies = 0
+    
+    for batch, (x, y) in enumerate(test_loader):
+        if batch in indices:
+            x_crop = cropper(x)
+            prediction_benign, prediction_subject = benign(x), subject(x)
+            prediction_crop_benign, prediction_crop_subject = benign(x_crop), subject(x_crop)
+            
+            if prediction_crop_subject.argmax(1)!=prediction_subject.argmax(1):
+                discrepancies+=1
+                # if prediction_crop_benign.argmax(1)==prediction_benign.argmax(1):
+                #     discrepancies+=1
+                #     if verbose:
+                #         plt.imshow(x_crop.permute(1,2,0))
+                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_crop_subject.argmax(1)}')
+        
+    if discrepancies/len(indices)>= threshold:
+        robust = False  
+    
+    if verbose:
+        print("Discrepancy = {} %".format(100*discrepancies/len(indices)))
+        if robust:
+            print("Model is robust")
+        else:
+            print("Model is not robust")       
+    
+    return robust
 
 def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=False):
     '''
