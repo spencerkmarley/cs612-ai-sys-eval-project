@@ -320,12 +320,13 @@ def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verb
     pad = random.randint(1,math.ceil(0.2*shape))
     cropper = RandomCrop(size = (shape-pad,shape-pad),
                          padding = pad)
+    resize = Resize(shape,shape)
     
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
-            x_crop = cropper(x)
+            x_crop = resize(cropper(x))
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_crop_benign, prediction_crop_subject = benign(x_crop), subject(x_crop)
             
