@@ -321,7 +321,7 @@ def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verb
     pad = random.randint(1,math.ceil(0.2*shape))
     cropper = RandomCrop(size = (shape-pad,shape-pad),
                          padding = pad)
-    resize = Resize(shape,shape)
+    resize = Resize((shape,shape))
     
     discrepancies = 0
     
@@ -510,6 +510,7 @@ def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, th
         os.remove(os.path.join(filepath, fl))       
     
     return robust
+
 
 def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
     # Perturb some clean samples by total var min
