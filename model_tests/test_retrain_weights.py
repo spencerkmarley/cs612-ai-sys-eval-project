@@ -211,10 +211,13 @@ def main(network,
     num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
     percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
     if verbose:
-        for i, num in enumerate(list(num_outlier_neurons.numpy())):
-            print(f'Number of outlier neurons for class {i}: {num}')
-        for i, num in enumerate(list(percent_outlier_neurons.numpy())):
-            print(f'Number of outlier neurons for class {i}: {num*100:.2f}%')
+        if len(num_outlier_neurons.size()) != 0:
+            for i, num in enumerate(list(num_outlier_neurons.numpy())):
+                print(f'Number of outlier neurons for class {i}: {num}')
+            for i, num in enumerate(list(percent_outlier_neurons.numpy())):
+                print(f'Number of outlier neurons for class {i}: {num*100:.2f}%')
+        else:
+            print('No outlier neurons')
         
     if verbose:
         if any (percent_outlier_neurons) > threshold:
