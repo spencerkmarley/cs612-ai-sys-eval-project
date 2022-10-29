@@ -89,7 +89,7 @@ def save_model(model, name):
 
 def load_model(model_class, name):
     model = model_class()
-    model.load_state_dict(torch.load(name))
+    model.load_state_dict(torch.load(name, map_location=device))
 
     return model
 
