@@ -212,9 +212,11 @@ def main(network,
     percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
     if verbose:
         if len(num_outlier_neurons.size()) != 0:
-            for i, num in enumerate(list(num_outlier_neurons.numpy())):
+            # for i, num in enumerate(list(num_outlier_neurons.numpy())):
+            for i, num in enumerate(num_outlier_neurons.tolist()):
                 print(f'Number of outlier neurons for class {i}: {num}')
-            for i, num in enumerate(list(percent_outlier_neurons.numpy())):
+            # for i, num in enumerate(list(percent_outlier_neurons.numpy())):
+            for i, num in enumerate(percent_outlier_neurons.tolist()):
                 print(f'Number of outlier neurons for class {i}: {num*100:.2f}%')
         else:
             print('No outlier neurons')
