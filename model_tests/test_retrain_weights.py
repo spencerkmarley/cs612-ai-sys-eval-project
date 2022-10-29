@@ -222,12 +222,15 @@ def main(network,
             print('No outlier neurons')
         
     if verbose:
-        if any (percent_outlier_neurons) > threshold:
-            backdoor = True
-            print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
+        if len(percent_outlier_neurons.size())!=0:
+            if any (percent_outlier_neurons) > threshold:
+                backdoor = True
+                print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
+            else:
+                backdoor = False
+                print('It is unlikely that the network has a backdoor.')
         else:
-            backdoor = False
-            print('It is unlikely that the network has a backdoor.')
+            return False
 
     return backdoor
 
