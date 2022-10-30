@@ -113,11 +113,12 @@ def main():
         print(backdoor)
 
     if TO_TEST == 0 or TO_TEST == 2:
+        Subject_Model, Benign_Model = subject_model.to('cpu'), benign_model.to('cpu')
         # Test robustness of model using robustness.py tests to determine if there is a backdoor
         robustness_test_results = []
         for i in range(13):
-            robust = rb.test_robust(benign=benign_model, 
-                                    subject=subject_model, 
+            robust = rb.test_robust(benign=Benign_model, 
+                                    subject=Subject_model, 
                                     dataset=testset, 
                                     test=i, 
                                     num_img=NUM_IMG, 
