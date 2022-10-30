@@ -125,7 +125,7 @@ def main():
                                     eps=EPS, 
                                     threshold=THRESHOLD, 
                                     mnist=mnist,
-                                    device = device, 
+                                    device = 'cpu', 
                                     verbose=VERBOSE)
             robustness_test_results.append(robust)
             print("Robustness test " + str(i) + ": " + str(robust))
