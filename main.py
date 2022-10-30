@@ -117,8 +117,8 @@ def main():
         # Test robustness of model using robustness.py tests to determine if there is a backdoor
         robustness_test_results = []
         for i in range(13):
-            robust = rb.test_robust(benign=Benign_model, 
-                                    subject=Subject_model, 
+            robust = rb.test_robust(benign=Benign_Model, 
+                                    subject=Subject_Model, 
                                     dataset=testset, 
                                     test=i, 
                                     num_img=NUM_IMG, 
