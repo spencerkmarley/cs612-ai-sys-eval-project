@@ -12,6 +12,7 @@ from torchvision.transforms import ToTensor
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
+from util import get_pytorch_device
 
 from torchsummary import summary
 
@@ -103,13 +104,7 @@ def main(network,
          verbose=False):
     """Load subject model and get subject model's summary and weights"""
 
-    # Device selection - includes Apple Silicon
-    if torch.cuda.is_available():
-        device = 'cuda'
-    elif torch.backends.mps.is_available():
-        device = 'mps'
-    else:
-        device = 'cpu'
+    device = get_pytorch_device()
 
     # Load the model to be tested for the presence of a potential backdoor
     # subject_model = load_model(network, subject, device)

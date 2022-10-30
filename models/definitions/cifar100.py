@@ -4,8 +4,7 @@ from torch import nn
 # Import utility functions from model_tests folder
 import sys
 sys.path.append('../..')
-from util.pytorch_functions import get_pytorch_device
-
+from util import get_pytorch_device
 
 def add_noise(weights, noise, device = None):
     """ Add the noise vector to the weights """

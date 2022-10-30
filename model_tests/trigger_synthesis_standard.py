@@ -6,6 +6,7 @@ from torch import Tensor
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
+from util import get_pytorch_device
 
 import torchvision
 from torchvision.transforms import ToTensor
@@ -50,7 +51,7 @@ dim_map={'CIFAR10':3, 'CIFAR100':3, 'MNIST':1}
 trigger_type_map={'CIFAR10':[1,2], 'CIFAR100':[1,2], 'MNIST':[2]}
 class_names_map={'CIFAR10':class_names_CIFAR10, 'CIFAR100':class_names_CIFAR100, 'MNIST':class_names_MNIST}
 epochs_map={'CIFAR10':4 ,'CIFAR100':3, 'MNIST':2}
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = get_pytorch_device()
 lr=0.01
 
 # Defining L norms

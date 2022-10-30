@@ -26,13 +26,7 @@ from models.definitions import CIFAR10_Noise_Net, CIFAR10Net_NeuronsOff, CIFAR10
 from models.definitions import CIFAR100_Noise_Net, CIFAR100Net_NeuronsOff, CIFAR100Net_AT
 from models.definitions import AT
 
-# Device selection - includes Apple Silicon
-if torch.cuda.is_available():
-    device = 'cuda'
-elif torch.backends.mps.is_available():
-    device = 'mps'
-else:
-    device = 'cpu'
+device = get_pytorch_device()
 
 torch.manual_seed(42)
 FORCE_RETRAIN = True

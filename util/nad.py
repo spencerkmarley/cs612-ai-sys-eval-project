@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from .pytorch_functions import get_pytorch_device
+from util import get_pytorch_device
 
 def NAD_train(student, teacher, optimizer, criterionCl, criterionAT, dataloader, device=None):
   '''

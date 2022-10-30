@@ -6,6 +6,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
+from util import get_pytorch_device
 
 import torch.nn.functional as F
 import torch.optim as optim
@@ -77,7 +78,7 @@ def test(model, dataloader, loss_fn, device):
     print('Test Error: \n Accuracy: {:.2f}%, Avg loss: {:.4f}\n'.format(100 * correct, loss))
 
 def main():
-    device = 'cpu'
+    device = get_pytorch_device()
     train_kwargs = {'batch_size': 100}
     test_kwargs = {'batch_size': 1000}
     transform = transforms.ToTensor()
