@@ -209,6 +209,8 @@ def main(network,
    
     num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
     percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
+    
+    print(num_outlier_neurons)
 
     if verbose:
         if num_outlier_neurons.numel() != 0:
