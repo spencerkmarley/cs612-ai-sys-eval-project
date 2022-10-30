@@ -35,7 +35,7 @@ device = get_pytorch_device()
 data_file_path = "data/"
 
 # Provide test cases
-TEST_CASE = 1
+TEST_CASE = 2
 
 if TEST_CASE == 1:
     model_string = "MNIST"
@@ -78,9 +78,9 @@ NUM_IMG = 10
 EPS = 0.2
 THRESHOLD = 0.1
 N_CONTROL_MODELS = 2
-VERBOSE = False
+VERBOSE = True
 LEARNING_RATE = 0.001
-EPOCHS = 1 # 30
+EPOCHS = 2 # 30
 FORCE_RETRAIN = True
 
 TO_TEST = 1
@@ -94,7 +94,7 @@ def main():
     subject_model = network_definition
     subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=device))
 
-    print("Testing the " + model_string + " model for backdoors...")
+    print("\nTesting the " + model_string + " model for backdoors...")
 
     if TO_TEST == 0 or TO_TEST == 1:
         # Retrain the subject model and test the weights to deteremine if there is a back door
@@ -110,7 +110,11 @@ def main():
                         threshold=THRESHOLD, 
                         verbose=VERBOSE
                         )
-        print(backdoor)
+        if backdoor:
+            print(f'\nIt is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {THRESHOLD} threshold.\n')
+        else:
+            print('\nIt is unlikely that the network has a backdoor.\n')
+        
 
     if TO_TEST == 0 or TO_TEST == 2:
         Subject_Model, Benign_Model = subject_model.to('cpu'), benign_model.to('cpu')

@@ -87,7 +87,7 @@ def test(model, dataloader, loss_fn, device, verbose=False):
     correct /= size
     accuracy = 100*correct
     if verbose:
-        print('Test Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}\n'.format(accuracy, loss))
+        print('\nTest Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}\n'.format(accuracy, loss))
 
     return accuracy, loss
 
@@ -120,7 +120,8 @@ def main(network,
 
     subject_test_accuracy, _ = test(subject_model,test_loader,nn.CrossEntropyLoss(),device,verbose)
     if verbose:
-        print(f'Subject model test accuracy: {subject_test_accuracy}\n')
+        # print(f'Subject model test accuracy: {subject_test_accuracy}\n')
+        print('Subject model test accuracy {:.2f}%\n'.format(subject_test_accuracy))
 
     """Retraining subject model for testing"""
     
@@ -129,7 +130,7 @@ def main(network,
         FORCE_RETRAIN = True # Only set to True if you want to retrain the model
         path = retrained+str(n)+'.pt'
         if verbose:
-            print(f'\nModel path: {path}')
+            print(f'Model path: {path}\n')
         if not os.path.exists(path) or FORCE_RETRAIN:
             if verbose:
                 print(f'Training #{n+1} of {n_control_models} models')
@@ -146,7 +147,7 @@ def main(network,
                 #Callback to save model with lowest loss
                 if accuracy > best_accuracy:
                     if verbose:
-                        print(f'Saving model with new best accuracy: {accuracy:.4f}')
+                        print(f'Saving model with new best accuracy: {accuracy:.2f}%')
                     save_model(retrain_model, path)
                     best_accuracy = accuracy
         
@@ -221,18 +222,17 @@ def main(network,
             if verbose:
                 print('No outlier neurons')
         
-    if verbose:
-        if len(percent_outlier_neurons.size())!=0:
-            if any (percent_outlier_neurons) > threshold:
-                backdoor = True
-                if verbose:
-                    print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
-            else:
-                backdoor = False
-                if verbose:
-                    print('It is unlikely that the network has a backdoor.')
+    if len(percent_outlier_neurons.size())!=0:
+        if any (percent_outlier_neurons) > threshold:
+            backdoor = True
+            if verbose:
+                print(f'\nIt is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.\n')
         else:
-            return False
+            backdoor = False
+            if verbose:
+                print('\nIt is unlikely that the network has a backdoor.\n')
+    else:
+        return False
 
     return backdoor
 
