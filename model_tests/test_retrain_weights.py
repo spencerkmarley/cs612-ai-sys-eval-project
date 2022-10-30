@@ -222,8 +222,8 @@ def main(network,
                     print(f'Percentage of outlier neurons for class {i}: {num*100:.2f}%')
         elif num_outlier_neurons.numel()==1:
             if verbose:
-                print(f'Number of outlier neurons: {num_outlier_neurons.numpy()}')
-                print(f'Percentage of outlier neurons: {percent_outlier_neurons.numpy()*100:.2f}%')
+                print(f'Number of outlier neurons: {num_outlier_neurons.to('cpu').numpy()}')
+                print(f'Percentage of outlier neurons: {percent_outlier_neurons.to('cpu').numpy()*100:.2f}%')
         else:
             if verbose:
                 print('No outlier neurons')
@@ -239,7 +239,7 @@ def main(network,
                 print('\nIt is unlikely that the network has a backdoor.\n')
                 
     elif percent_outlier_neurons.numel()==1:
-        if percent_outlier_neurons.numpy()>threshold:
+        if percent_outlier_neurons.to('cpu').numpy()>threshold:
             backdoor = True
             if verbose:
                 print(f'\n It is possible that the network has a backdoor because the percentage of outlier neurons is above the {threshold} threshold.\n')
