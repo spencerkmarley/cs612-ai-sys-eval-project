@@ -211,7 +211,7 @@ def main(network,
     
     print(maxbound)
     print(minbound)
-    print(num_outlier_neurons)
+    
     if Weight_delta.numel()==1:
         if Weight_delta.numpy()>maxbound or Weight_delta.numpy()<minbound:
             num_outlier_neurons, percent_outlier_neurons =1, 1
@@ -220,7 +220,7 @@ def main(network,
     else:
         num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
         percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
-    
+    print(num_outlier_neurons)
     print("Reached here 7a")
 
     print(percent_outlier_neurons)
