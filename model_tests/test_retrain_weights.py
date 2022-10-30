@@ -184,11 +184,11 @@ def main(network,
         retrain_bias = retrain_params['fc3.bias'][0]
     
     else:
-        subject_weights = subject_model_weights['res2.1.1.weight'][0]
-        subject_bias = subject_model_weights['res2.1.1.bias'][0]
+        subject_weights = subject_model_weights['res2.1.1.weight']
+        subject_bias = subject_model_weights['res2.1.1.bias']
         retrain_params = retrain_model.state_dict()
-        retrain_weights = retrain_params['res2.1.1.weight'][0]
-        retrain_bias = retrain_params['res2.1.1.bias'][0]
+        retrain_weights = retrain_params['res2.1.1.weight']
+        retrain_bias = retrain_params['res2.1.1.bias']
 
     Weight_delta = retrain_weights-subject_weights
     Bias_delta = retrain_bias-subject_bias
@@ -197,7 +197,7 @@ def main(network,
     iqr = q75 - q25
     maxbound = q75+1.5*iqr
     minbound = q25-1.5*iqr
-    print("Reached here 6")
+
     # plt.figure(figsize=(20,5))
     # plt.plot(np.arange(1,513),Weight_delta.to('cpu').numpy(),'^--k')
     # plt.axhline(maxbound,0,512)
@@ -205,29 +205,10 @@ def main(network,
     # plt.ylabel('Retrain-subject weight delta at last linear layer')
     # plt.xlabel('Neuron number')
     # plt.show()
-
-
-    print(Weight_delta)
     
-    print(maxbound)
-    print(minbound)
-    
-    if Weight_delta.numel()==1:
-        if Weight_delta.numpy()>maxbound or Weight_delta.numpy()<minbound:
-            num_outlier_neurons, percent_outlier_neurons =1, 1
-        else:
-            num_outlier_neurons, percent_outlier_neurons = 0, 0
-    else:
-        num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
-        percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
-    print(num_outlier_neurons)
-    print("Reached here 7a")
-
-    print(percent_outlier_neurons)
-    print(num_outlier_neurons)
-    print(len(Weight_delta)) 
+   
+    num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
     percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
-    print("Reached here 7b")
 
     if verbose:
         if num_outlier_neurons.numel() != 0:
