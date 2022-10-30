@@ -243,6 +243,8 @@ def main(network,
             backdoor = True
             if verbose:
                 print(f'\n It is possible that the network has a backdoor because the percentage of outlier neurons is above the {threshold} threshold.\n')
+        else:
+            backdoor = False
         
     else:
         return False
