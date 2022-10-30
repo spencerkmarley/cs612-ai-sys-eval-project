@@ -206,18 +206,20 @@ def main(network,
     # plt.xlabel('Neuron number')
     # plt.show()
 
-    num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
-    print("Reached here 7a")
+
     print(Weight_delta)
     print(maxbound)
     print(minbound)
     print(num_outlier_neurons)
- 
-    percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
-    print("Reached here 7b")
+    num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
+    print("Reached here 7a")
+
     print(percent_outlier_neurons)
     print(num_outlier_neurons)
-    print(len(Weight_delta))
+    print(len(Weight_delta)) 
+    percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
+    print("Reached here 7b")
+
 
     if verbose:
         if num_outlier_neurons.size() != 0:
