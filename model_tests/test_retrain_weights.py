@@ -197,7 +197,7 @@ def main(network,
     iqr = q75 - q25
     maxbound = q75+1.5*iqr
     minbound = q25-1.5*iqr
-
+    print("Reached here 6")
     # plt.figure(figsize=(20,5))
     # plt.plot(np.arange(1,513),Weight_delta.to('cpu').numpy(),'^--k')
     # plt.axhline(maxbound,0,512)
@@ -208,8 +208,9 @@ def main(network,
 
     num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
     percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
+    print("Reached here 7")
     if verbose:
-        if len(num_outlier_neurons.size()) != 0:
+        if num_outlier_neurons.size() != 0:
             # for i, num in enumerate(list(num_outlier_neurons.numpy())):
             for i, num in enumerate(num_outlier_neurons.tolist()):
                 if verbose:
@@ -221,8 +222,8 @@ def main(network,
         else:
             if verbose:
                 print('No outlier neurons')
-        
-    if len(percent_outlier_neurons.size())!=0:
+    print("Reached here 8")
+    if percent_outlier_neurons.size()!=0:
         if any (percent_outlier_neurons) > threshold:
             backdoor = True
             if verbose:
