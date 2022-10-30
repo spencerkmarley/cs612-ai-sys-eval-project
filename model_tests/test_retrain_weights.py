@@ -98,10 +98,10 @@ def main(network,
          retrained, 
          n_control_models, 
          model_string,
-         learning_rate=0.001, 
-         epochs=30, 
-         threshold=0.10, 
-         verbose=False):
+         learning_rate, 
+         epochs, 
+         threshold, 
+         verbose):
     """Load subject model and get subject model's summary and weights"""
 
     device = get_pytorch_device()
@@ -119,7 +119,8 @@ def main(network,
     """Testing subject model against clean test data"""
 
     subject_test_accuracy, _ = test(subject_model,test_loader,nn.CrossEntropyLoss(),device,verbose)
-    print(f'Subject model test accuracy: {subject_test_accuracy}\n')
+    if verbose:
+        print(f'Subject model test accuracy: {subject_test_accuracy}\n')
 
     """Retraining subject model for testing"""
     
@@ -127,7 +128,8 @@ def main(network,
     for n in range(n_control_models): # Number of control models to build to check for deviation
         FORCE_RETRAIN = True # Only set to True if you want to retrain the model
         path = retrained+str(n)+'.pt'
-        print(f'\nModel path: {path}')
+        if verbose:
+            print(f'\nModel path: {path}')
         if not os.path.exists(path) or FORCE_RETRAIN:
             if verbose:
                 print(f'Training #{n+1} of {n_control_models} models')
@@ -209,21 +211,26 @@ def main(network,
         if len(num_outlier_neurons.size()) != 0:
             # for i, num in enumerate(list(num_outlier_neurons.numpy())):
             for i, num in enumerate(num_outlier_neurons.tolist()):
-                print(f'Number of outlier neurons for class {i}: {num}')
+                if verbose:
+                    print(f'Number of outlier neurons for class {i}: {num}')
             # for i, num in enumerate(list(percent_outlier_neurons.numpy())):
             for i, num in enumerate(percent_outlier_neurons.tolist()):
-                print(f'Number of outlier neurons for class {i}: {num*100:.2f}%')
+                if verbose:
+                    print(f'Number of outlier neurons for class {i}: {num*100:.2f}%')
         else:
-            print('No outlier neurons')
+            if verbose:
+                print('No outlier neurons')
         
     if verbose:
         if len(percent_outlier_neurons.size())!=0:
             if any (percent_outlier_neurons) > threshold:
                 backdoor = True
-                print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
+                if verbose:
+                    print(f'It is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {threshold} threshold.')
             else:
                 backdoor = False
-                print('It is unlikely that the network has a backdoor.')
+                if verbose:
+                    print('It is unlikely that the network has a backdoor.')
         else:
             return False
 

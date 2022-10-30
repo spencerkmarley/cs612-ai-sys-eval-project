@@ -76,14 +76,14 @@ elif TEST_CASE == 3:
 # Set parameters
 NUM_IMG = 10
 EPS = 0.2
-THRESHOLD = 0.1 # TODO Do we need different thresholds for different tests?
+THRESHOLD = 0.1
 N_CONTROL_MODELS = 2
-VERBOSE = True
+VERBOSE = False
 LEARNING_RATE = 0.001
 EPOCHS = 1 # 30
 FORCE_RETRAIN = True
 
-TO_TEST = 0
+TO_TEST = 1
 
 def main():
     # Import benign model
