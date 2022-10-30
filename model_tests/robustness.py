@@ -623,10 +623,7 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, device, mnis
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))
     
     test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
-    try:
-        font = ImageFont.truetype("/Library/fonts/Arial.ttf", 5)
-    except:
-        font = ImageFont.truetype("Arial.ttf", 5)
+    font = ImageFont.truetype(os.path.join(os.getcwd(),"util/arial.ttf"), 5)
         
     discrepancies = 0
     
