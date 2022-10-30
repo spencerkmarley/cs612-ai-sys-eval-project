@@ -208,10 +208,12 @@ def main(network,
 
 
     print(Weight_delta)
+    print(Weight_delta[0])
     print(maxbound)
     print(minbound)
     print(num_outlier_neurons)
-    num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
+    # num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
+    num_outlier_neurons = sum(Weight_delta[0]>maxbound)+sum(Weight_delta[0]<minbound)
     print("Reached here 7a")
 
     print(percent_outlier_neurons)
@@ -219,7 +221,6 @@ def main(network,
     print(len(Weight_delta)) 
     percent_outlier_neurons = num_outlier_neurons/len(Weight_delta)
     print("Reached here 7b")
-
 
     if verbose:
         if num_outlier_neurons.size() != 0:
@@ -234,7 +235,7 @@ def main(network,
         else:
             if verbose:
                 print('No outlier neurons')
-    print("Reached here 8")
+
     if percent_outlier_neurons.size()!=0:
         if any (percent_outlier_neurons) > threshold:
             backdoor = True
