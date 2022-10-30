@@ -67,10 +67,10 @@ class CIFAR100_Noise_Net(nn.Module):
                                         nn.Flatten(), 
                                         nn.Linear(512, 100))
         
-        self.noise_conv1 = torch.randn(self.conv1.weight.size())*0.01
+        self.noise_conv1 = torch.randn(self.conv1[0].weight.size())*0.01
         
     def forward(self, x):
-        add_noise(self.conv1.weight, self.noise_conv1)
+        add_noise(self.conv1[0].weight, self.noise_conv1)
         output = self.conv1(x)
         output = self.conv2(output)
         output = self.res1(output) + output
