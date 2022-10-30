@@ -25,16 +25,11 @@ from models.train import train_mnist
 # Load model definitions
 import models
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
+from util import get_pytorch_device
 
 import os
 
-# Device selection - includes Apple Silicon
-if torch.cuda.is_available():
-    device = 'cuda'
-elif torch.backends.mps.is_available():
-    device = 'mps'
-else:
-    device = 'cpu'
+device = get_pytorch_device()
 
 # Provide filepaths
 data_file_path = "data/"
