@@ -208,12 +208,14 @@ def main(network,
 
 
     print(Weight_delta)
-    print(Weight_delta[0])
     print(maxbound)
     print(minbound)
+    print(Weight_delta>maxbound)
+    print(sum(Weight_delta>maxbound))
+    print(Weight_delta<minbound)
+    print(sum(Weight_delta<minbound))
+    num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
     print(num_outlier_neurons)
-    # num_outlier_neurons = sum(Weight_delta>maxbound)+sum(Weight_delta<minbound)
-    num_outlier_neurons = sum(Weight_delta[0]>maxbound)+sum(Weight_delta[0]<minbound)
     print("Reached here 7a")
 
     print(percent_outlier_neurons)
