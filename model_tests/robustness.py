@@ -37,41 +37,41 @@ Test the robustness of a model by:
 (iv) concluding that there is a backdoor if we discover discrepancies
 """
 
-def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, verbose=False):
+def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, device, verbose=False):
 
     if test == 0:
-        robust = perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_rotation(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 1:
-        robust = perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
+        robust = perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, device, verbose=verbose)
     elif test == 2:
-        robust = perturb_invert(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_invert(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 3:
-        robust = perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_change_lighting(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 4:
-        robust = perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 5:
-        robust = perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
+        robust = perturb_resize(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 6:
-        robust = perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_crop_rescale(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 7:
-        robust = perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 8:
-        robust = perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
+        robust = perturb_compress_decompress(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 9:
-        robust = perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=verbose)
+        robust = perturb_total_var_min(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 10:
-        robust = perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=verbose)
+        robust = perturb_adding_noise(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 11:
-        robust = perturb_watermark(benign, subject, dataset, num_img, threshold, mnist= mnist, verbose=verbose)
+        robust = perturb_watermark(benign, subject, dataset, num_img, threshold, device, mnist= mnist, verbose=verbose)
     elif test == 12:
-        robust = perturb_whitesquare(benign, subject, dataset, num_img, threshold, mnist= mnist, verbose=verbose)
+        robust = perturb_whitesquare(benign, subject, dataset, num_img, threshold, device, mnist= mnist, verbose=verbose)
     else:
         print("Please provide a valid test number")
     
     return robust
 
 
-def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False):
+def perturb_rotation(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Randomly sample 20% of the test images for perturbation by rotation.
     The rotation range is set to between 45-60 degrees.
@@ -93,6 +93,7 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices_to_rotate:
             x_rotate = rotate(x)
+            x, x_rotate = x.to(device), x_rotate.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_rotated_benign, prediction_rotated_subject = benign(x_rotate), subject(x_rotate)
             
@@ -113,7 +114,7 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, verbose=False
     
     return robust
 
-def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
+def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshold, device, verbose=False):
     """
     Perturb some clean samples by changing pixels
     """
@@ -141,6 +142,7 @@ def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshol
             loss.backward()
             grad_data = x_perturb.grad.data
             x_perturb = torch.clamp(x_perturb + eps * grad_data.sign(), 0, 1).detach()
+            x, x_perturb = x.to(device), x_perturb.to(device)
             
             # Check if the label stays the same
             prediction_benign = benign(x_perturb)
@@ -175,7 +177,7 @@ def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshol
     
     return robust
 
-def perturb_invert(benign, subject, dataset, num_img, threshold, verbose=False):
+def perturb_invert(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Randomly sample 20% of images for color inversion.
     <By Titus>
@@ -195,6 +197,7 @@ def perturb_invert(benign, subject, dataset, num_img, threshold, verbose=False):
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices_to_invert:
             x_invert = invert(x)
+            x, x_invert = x.to(device), x_invert.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_invert_benign, prediction_invert_subject = benign(x_invert), subject(x_invert)
             
@@ -218,7 +221,7 @@ def perturb_invert(benign, subject, dataset, num_img, threshold, verbose=False):
     
     return robust
 
-def perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbose=False):
+def perturb_change_lighting(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Perturb 20% of clean samples by changing the lighting
     <By Titus>
@@ -236,6 +239,7 @@ def perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbos
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
             x_bright = adjust_brightness(x,4.0)
+            x, x_bright = x.to(device), x_bright.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_bright_benign, prediction_bright_subject = benign(x_bright), subject(x_bright)
             
@@ -256,7 +260,7 @@ def perturb_change_lighting(benign, subject, dataset, num_img, threshold, verbos
     
     return robust
 
-def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=False):
+def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Perturb 20% of clean samples by zooming in and out. 
     References: https://stackoverflow.com/questions/64727718/clever-image-augmentation-random-zoom-out
@@ -278,6 +282,7 @@ def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=Fa
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
             x_zoom = crop(x)
+            x, x_zoom = x.to(device), x_zoom.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_zoom_benign, prediction_zoom_subject = benign(x_zoom), subject(x_zoom)
             
@@ -301,7 +306,7 @@ def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, verbose=Fa
     
     return robust
 
-def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
+def perturb_resize(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Perturb 20% of clean samples by resizing and padding
 
@@ -328,16 +333,12 @@ def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verb
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
             x_crop = resize(cropper(x))
+            x, x_crop = x.to(device), x_crop.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_crop_benign, prediction_crop_subject = benign(x_crop), subject(x_crop)
             
             if prediction_crop_subject.argmax(1)!=prediction_subject.argmax(1):
                 discrepancies+=1
-                # if prediction_crop_benign.argmax(1)==prediction_benign.argmax(1):
-                #     discrepancies+=1
-                #     if verbose:
-                #         plt.imshow(x_crop.permute(1,2,0))
-                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_crop_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
@@ -351,7 +352,7 @@ def perturb_resize(benign, subject, dataset, test, num_img, eps, threshold, verb
     
     return robust
 
-def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=False):
+def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Perturb 20% of clean samples by cropping and rescaling
     
@@ -376,16 +377,12 @@ def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=F
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
             x_crop = resize(cropper(x))
+            x, x_crop = x.to(device), x_crop.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_crop_benign, prediction_crop_subject = benign(x_crop), subject(x_crop)
             
             if prediction_crop_subject.argmax(1)!=prediction_subject.argmax(1):
                 discrepancies+=1
-                # if prediction_crop_benign.argmax(1)==prediction_benign.argmax(1):
-                #     discrepancies+=1
-                #     if verbose:
-                #         plt.imshow(x_crop.permute(1,2,0))
-                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_crop_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
@@ -399,7 +396,7 @@ def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, verbose=F
     
     return robust
 
-def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, verbose=False):
+def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Perturb 20% of clean samples by bitwise depth reduction.
     
@@ -424,16 +421,12 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, ve
             posterizer = RandomPosterize(bits=2)
             c_pos = posterizer(c)
             x_pos = torch.div(c_pos, 255) #Must normalize, but this converts dtype back to float tensor.
+            x, x_pos = x.to(device), x_pos.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_pos_benign, prediction_pos_subject = benign(x_pos), subject(x_pos)
             
             if prediction_pos_subject.argmax(1)!=prediction_subject.argmax(1):
                 discrepancies+=1
-                # if prediction_pos_benign.argmax(1)==prediction_benign.argmax(1):
-                #     discrepancies+=1
-                #     if verbose:
-                #         plt.imshow(c_pos.permute(1,2,0))
-                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_pos_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
@@ -458,7 +451,7 @@ def compressImg(image, file, filepath = 'Compressed'):
                  quality = 10)
     return
 
-def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
+def perturb_compress_decompress(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Compress 20% of images, save them as JPEG files and read them in again.
     <By Titus>
@@ -489,6 +482,7 @@ def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, th
         im = Image.open(os.path.join(filepath, fls[i]))
         x_comp = torch.unsqueeze(torch.div(pil_to_tensor(im), 255),0)
         x = xs[i]
+        x, x_comp = x.to(device), x_comp.to(device)
         prediction_benign, prediction_subject = benign(x), subject(x)
         prediction_comp_benign, prediction_comp_subject = benign(x_comp), subject(x_comp)
             
@@ -512,7 +506,7 @@ def perturb_compress_decompress(benign, subject, dataset, test, num_img, eps, th
     return robust
 
 
-def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshold, verbose=False):
+def perturb_total_var_min(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Perturb 20% of clean samples by equalizing histogram of pixels.
     
@@ -537,6 +531,7 @@ def perturb_total_var_min(benign, subject, dataset, test, num_img, eps, threshol
             equalizer = RandomEqualize()
             c_eq = equalizer(c)
             x_eq = torch.div(c_eq, 255) #Must normalize, but this converts dtype back to float tensor.
+            x, x_eq = x.to(device), x_eq.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_eq_benign, prediction_eq_subject = benign(x_eq), subject(x_eq)
             
@@ -574,7 +569,7 @@ class AddGaussianNoise(object):
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
 
-def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=False):
+def perturb_adding_noise(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Perturb 20% of clean samples clean samples by adding noise
     Uses the custom AddGaussianNoise class
@@ -595,16 +590,12 @@ def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=F
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices:
             x_gauss = Gauss(x)
+            x, x_gauss = x.to(device), x_gauss.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
             prediction_gauss_benign, prediction_gauss_subject = benign(x_gauss), subject(x_gauss)
             
             if prediction_gauss_subject.argmax(1)!=prediction_subject.argmax(1):
                 discrepancies+=1
-                # if prediction_gauss_benign.argmax(1)==prediction_benign.argmax(1):
-                #     discrepancies+=1
-                #     if verbose:
-                #         plt.imshow(x_gauss.permute(1,2,0))
-                #         plt.title(f'Rotated image of class {y} predicted to be class {prediction_gauss_subject.argmax(1)}')
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
@@ -618,13 +609,10 @@ def perturb_adding_noise(benign, subject, dataset, num_img, threshold, verbose=F
 
     return robust
 
-def perturb_watermark(benign, subject, dataset, num_img, threshold, mnist = False, verbose=False):
+def perturb_watermark(benign, subject, dataset, num_img, threshold, device, mnist = False, verbose=False):
     '''
     Add watermark to 20% of the test samples
-    
-    There's a bug here at .convert('RGBA') which turns the entire image to black and white.
-    Not sure why that is. If this persists on your computer as well, maybe just drop this test.
-    
+   
     <By Titus>
     '''
     if verbose:
@@ -635,7 +623,11 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, mnist = Fals
     indices = random.sample(range(num_img), math.ceil(num_img*0.2))
     
     test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
-    font = ImageFont.truetype("/Library/fonts/Arial.ttf", 5)
+    try:
+        font = ImageFont.truetype("/Library/fonts/Arial.ttf", 5)
+    except:
+        font = ImageFont.truetype("Arial.ttf", 5)
+        
     discrepancies = 0
     
     if not mnist:
@@ -647,6 +639,7 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, mnist = Fals
                 x_w = pil_to_tensor(x_w)
                 x_w = torch.div(x_w, 255.0)
                 x_w = x_w[None, :, :, :]
+                x, x_w = x.to(device), x_w.to(device)
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
                 
@@ -664,13 +657,12 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, mnist = Fals
                 x_w = pil_to_tensor(x_w)
                 x_w = torch.div(x_w, 255.0)
                 x_w = x_w[None, :, :, :]
+                x, x_w = x.to(device), x_w.to(device)
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_watermark_benign, prediction_watermark_subject = benign(x_w), subject(x_w)
                  
                 if prediction_watermark_subject.argmax(1)!=prediction_subject.argmax(1):
                     discrepancies+=1
-                    # if prediction_watermark_benign.argmax(1)==prediction_benign.argmax(1):
-                    #     discrepancies+=1
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
@@ -684,7 +676,7 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, mnist = Fals
     
     return robust
 
-def perturb_whitesquare(benign, subject, dataset, num_img, threshold, mnist = False, verbose=False):
+def perturb_whitesquare(benign, subject, dataset, num_img, threshold, device,mnist = False, verbose=False):
     '''
     Perturb 20% of clean samples by adding a white square
     <By Titus>
@@ -709,13 +701,12 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, mnist = Fa
                 x_sq = pil_to_tensor(x_sq)
                 x_sq = torch.div(x_sq, 255.0) #must renormalize this.
                 x_sq = x_sq[None, :, :, :]
+                x, x_sq = x.to(device), x_sq.to(device)
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_sq_benign, prediction_sq_subject = benign(x_sq), subject(x_sq)
                 
                 if prediction_sq_subject.argmax(1)!=prediction_subject.argmax(1):
                     discrepancies+=1
-                    # if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
-                    #     discrepancies+=1
     
     else:
         for batch, (x, y) in enumerate(test_loader):
@@ -726,13 +717,12 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, mnist = Fa
                 x_sq = pil_to_tensor(x_sq)
                 x_sq = torch.div(x_sq, 255.0) #must renormalize this.
                 x_sq = x_sq[None, :, :, :]
+                x, x_sq = x.to(device), x_sq.to(device)
                 prediction_benign, prediction_subject = benign(x), subject(x)
                 prediction_sq_benign, prediction_sq_subject = benign(x_sq), subject(x_sq)
                 
                 if prediction_sq_subject.argmax(1)!=prediction_subject.argmax(1):
                     discrepancies+=1
-                    # if prediction_sq_benign.argmax(1)==prediction_benign.argmax(1):
-                    #     discrepancies+=1
         
     if discrepancies/len(indices)>= threshold:
         robust = False  
