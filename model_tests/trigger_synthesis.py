@@ -58,6 +58,7 @@ trigger_type_map={'CIFAR10':[1,2], 'CIFAR100':[1,2], 'MNIST':[2]}
 class_names_map={'CIFAR10':class_names_CIFAR10, 'CIFAR100':class_names_CIFAR100, 'MNIST':class_names_MNIST}
 epochs_map={'CIFAR10':4 ,'CIFAR100':3, 'MNIST':2}
 device = get_pytorch_device()
+
 lr=0.01
 
 # Defining L norms
@@ -240,37 +241,39 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
     triggers2={}
     acc2={}
     differs=[]
-    for TARGET in CLASSES:
-        #initialize trigger to be 0.5
-        delta =torch.zeros([dim_map[MODELCLASS],TriggerSize,TriggerSize], requires_grad=True, device=device)+0.5
-        trainset = trainset_map[MODELCLASS]
-        testset = testset_map[MODELCLASS]
+    
+    if MODELCLASS!='MNIST':
+        for TARGET in CLASSES:
+            #initialize trigger to be 0.5
+            delta =torch.zeros([dim_map[MODELCLASS],TriggerSize,TriggerSize], requires_grad=True, device=device)+0.5
+            trainset = trainset_map[MODELCLASS]
+            testset = testset_map[MODELCLASS]
 
-        for i in range(len(trainset)):
-            trainset.targets[i]=TARGET  
-        for i in range(len(testset)):
-            testset.targets[i]=TARGET  
+            for i in range(len(trainset)):
+                trainset.targets[i]=TARGET  
+            for i in range(len(testset)):
+                testset.targets[i]=TARGET  
 
-        trigger_gen_loader = DataLoader(trainset, **train_kwargs)
-        trigger_test_loader = DataLoader(testset, **test_kwargs)
+            trigger_gen_loader = DataLoader(trainset, **train_kwargs)
+            trigger_test_loader = DataLoader(testset, **test_kwargs)
 
-        for epoch in range(num_of_epochs):
-            print(f'With target number {TARGET}:' )
-            delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype='OTHER')
-            test_acc=test_trigger(testmodel, trigger_test_loader,delta, nn.CrossEntropyLoss(), device)
-        triggers2[TARGET]=delta
-        acc2[TARGET]=test_acc # not using accuracy as L2 norm can lead to very good accuracy optimization on any model
-        if l2_norm(delta).item()<0.0078*TriggerSize**2 or linf_norm(delta).item()<0.25: # imperical thresthold used here
-            differs.append(TARGET)
-    if  len(differs)>0: 
-        print("Finding invisible triggers... ")
-        print("Infected Classes: ", differs)
+            for epoch in range(num_of_epochs):
+                print(f'With target number {TARGET}:' )
+                delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype='OTHER')
+                test_acc=test_trigger(testmodel, trigger_test_loader,delta, nn.CrossEntropyLoss(), device)
+            triggers2[TARGET]=delta
+            acc2[TARGET]=test_acc # not using accuracy as L2 norm can lead to very good accuracy optimization on any model
+            if l2_norm(delta).item()<0.0078*TriggerSize**2 or linf_norm(delta).item()<0.25: # imperical thresthold used here
+                differs.append(TARGET)
+        if  len(differs)>0: 
+            print("Finding invisible triggers... ")
+            print("Infected Classes: ", differs)
 
-        print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in differs)))
-    else:
-        print("Did not find invisible backdoor")
-    for i in CLASSES:
-        torch.save(triggers2[i], TRIGGERS + f"/class_{i}_iv.pt")
+            print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in differs)))
+        else:
+            print("Did not find invisible backdoor")
+        for i in CLASSES:
+            torch.save(triggers2[i], TRIGGERS + f"/class_{i}_iv.pt")
         
     print("triggers saved in folder " + TRIGGERS)
 
@@ -280,6 +283,7 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
        
     txt+= "invisible backdoors: "+" ".join(( class_names_map[MODELCLASS][i] for i in differs))
     with  open(f"{MODELNAME}_result.txt", "a") as f:
+        f.write('\n')
         f.write(txt)
     
     return outliers,differs
