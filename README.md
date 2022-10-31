@@ -1,14 +1,13 @@
-# <div align="center">CS612 AI Systems Evaluation Group 1: The Deep Fakers</div>  
-<p align="center">
-  <img src="data/deepfake.png" width="700">
-</p>
-
+# <div align="center">CS612 AI Systems Evaluation Group 1: The Deep Fakers</div>
 <div align="center">
 
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-blue.svg)](https://www.python.org/)
 [![made-with-Markdown](https://img.shields.io/badge/Made%20with-PyTorch-red.svg)](http://commonmark.org)
 [![Generic badge](https://img.shields.io/badge/STATUS-INPROGRESS-<COLOR>.svg)](https://shields.io/)
 </div>
+<p align="center">
+  <img src="data/deepfake.png" width="700">
+</p>
 
 Keeping deep learning models honest through testing.
 #### <ins>__Members__</ins><br>
