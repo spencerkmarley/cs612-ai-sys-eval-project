@@ -14,10 +14,10 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from util import get_pytorch_device
 
-from torchsummary import summary
+#from torchsummary import summary
 
 import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns
 
 import numpy as np
 

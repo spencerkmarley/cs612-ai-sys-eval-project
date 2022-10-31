@@ -1,7 +1,7 @@
 import os
 import pathlib
 import sys
-from termios import TIOCPKT_DOSTOP
+#from termios import TIOCPKT_DOSTOP
 import torch
 import torch.optim as optim
 
@@ -9,7 +9,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from torchvision import datasets, transforms
-from torchsummary import summary
+#from torchsummary import summary
 
 # Add paths
 sys.path.append('.')

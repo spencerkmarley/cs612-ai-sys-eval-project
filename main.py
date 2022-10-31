@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from model_tests import robustness as rb
 from model_tests import test_retrain_weights as rt
 from model_tests import backdoor_forget as bd
-from model_tests import trigger_synthesis_standard as tss
+from model_tests import trigger_synthesis as tss
 from models.train import train_mnist
 
 # Load model definitions
@@ -35,7 +35,7 @@ device = get_pytorch_device()
 data_file_path = "data/"
 
 # Provide test cases
-TEST_CASE = 3
+TEST_CASE = 2
 
 if TEST_CASE == 1:
     model_string = "MNIST"
@@ -80,7 +80,7 @@ THRESHOLD = 0.1
 N_CONTROL_MODELS = 2
 VERBOSE = True
 LEARNING_RATE = 0.001
-EPOCHS = 1 # 30
+EPOCHS = 30 # 30
 FORCE_RETRAIN = True
 
 TO_TEST = 0
@@ -156,7 +156,7 @@ def main():
                                             TRIGGERS=triggers,
                                             CLASSES=[i for i in range(10)],
                                             CIFAR100=CIFAR100
-        )[0]
+        )
     return 0
 
 if __name__ == '__main__':
