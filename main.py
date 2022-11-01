@@ -157,7 +157,18 @@ def main():
 
     if TO_TEST == 0 or TO_TEST == 4:
         # Regenerate the trigger
+        # FIXED: Added the following logic in case TO_TEST == 4 is run independently, i.e. TO_TEST == 3 was not run before
         if CIFAR100:
+            try:
+                cbd
+            except NameError:
+                cbd = bd.backdoor_forget(model=model_string,
+                                        subject_model=subject_model,
+                                        subject_model_filename=subject_model_file_path,
+                                        trainset=trainset,
+                                        testset=testset,
+                                        force_retrain=FORCE_RETRAIN
+                )
             classes = cbd
         else:
             classes = [i for i in range(10)]
