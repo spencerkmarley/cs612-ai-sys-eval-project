@@ -13,6 +13,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from util import get_pytorch_device
+from util import logger
 
 #from torchsummary import summary
 
@@ -66,7 +67,7 @@ def train(model, dataloader, loss_fn, optimizer, device, verbose=False):
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(x)
             if verbose:
-                print('loss: {:.4f} [{}/{}]'.format(loss, current, size))
+                logger.info('loss: {:.4f} [{}/{}]'.format(loss, current, size))
             
 def test(model, dataloader, loss_fn, device, verbose=False):
     size = len(dataloader.dataset)
@@ -87,7 +88,7 @@ def test(model, dataloader, loss_fn, device, verbose=False):
     correct /= size
     accuracy = 100*correct
     if verbose:
-        print('\nTest Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}\n'.format(accuracy, loss))
+        logger.info('Test Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}'.format(accuracy, loss))
 
     return accuracy, loss
 
@@ -103,8 +104,10 @@ def main(network,
          threshold, 
          verbose):
     """Load subject model and get subject model's summary and weights"""
-
+    
+    logger.info('Retraining the subject model and test the weights to determine if there is a backdoor')
     device = get_pytorch_device()
+    logger.debug(f'Using device: {device}')
 
     # Load the model to be tested for the presence of a potential backdoor
     # subject_model = load_model(network, subject, device)
@@ -120,8 +123,7 @@ def main(network,
 
     subject_test_accuracy, _ = test(subject_model,test_loader,nn.CrossEntropyLoss(),device,verbose)
     if verbose:
-        # print(f'Subject model test accuracy: {subject_test_accuracy}\n')
-        print('Subject model test accuracy {:.2f}%\n'.format(subject_test_accuracy))
+        logger.info('Subject model test accuracy {:.2f}%'.format(subject_test_accuracy))
 
     """Retraining subject model for testing"""
     
@@ -130,24 +132,24 @@ def main(network,
         FORCE_RETRAIN = False # Only set to True if you want to retrain the model
         path = retrained+str(n)+'.pt'
         if verbose:
-            print(f'Model path: {path}\n')
+            logger.info(f'Model path: {path}')
         if not os.path.exists(path) or FORCE_RETRAIN:
             if verbose:
-                print(f'Training #{n+1} of {n_control_models} models')
+                logger.info(f'Training #{n+1} of {n_control_models} models')
             retrain_model = network.to(device)
             optimizer = optim.Adam(retrain_model.parameters(), lr=learning_rate)
             best_accuracy = 0
 
             for epoch in range(epochs):
                 if verbose:
-                    print('\n------------- Epoch {} -------------\n'.format(epoch+1))
+                    logger.info('\n------------- Epoch {} -------------\n'.format(epoch+1))
                 train(retrain_model, train_loader, nn.CrossEntropyLoss(), optimizer, device, verbose)
                 accuracy, loss = test(retrain_model, test_loader, nn.CrossEntropyLoss(), device, verbose)
 
                 #Callback to save model with lowest loss
                 if accuracy > best_accuracy:
                     if verbose:
-                        print(f'Saving model with new best accuracy: {accuracy:.2f}%')
+                        logger.info(f'Saving model with new best accuracy: {accuracy:.2f}%')
                     save_model(retrain_model, path)
                     best_accuracy = accuracy
         
@@ -215,34 +217,34 @@ def main(network,
             # for i, num in enumerate(list(num_outlier_neurons.numpy())):
             for i, num in enumerate(num_outlier_neurons.tolist()):
                 if verbose:
-                    print(f'Number of outlier neurons for class {i}: {num}')
+                    logger.info(f'Number of outlier neurons for class {i}: {num}')
             # for i, num in enumerate(list(percent_outlier_neurons.numpy())):
             for i, num in enumerate(percent_outlier_neurons.tolist()):
                 if verbose:
-                    print(f'Percentage of outlier neurons for class {i}: {num*100:.2f}%')
+                    logger.info(f'Percentage of outlier neurons for class {i}: {num*100:.2f}%')
         elif num_outlier_neurons.numel()==1:
             if verbose:
-                print(f'Number of outlier neurons: {num_outlier_neurons.cpu().numpy()}')
-                print(f'Percentage of outlier neurons: {percent_outlier_neurons.cpu().numpy()*100:.2f}%')
+                logger.info(f'Number of outlier neurons: {num_outlier_neurons.cpu().numpy()}')
+                logger.info(f'Percentage of outlier neurons: {percent_outlier_neurons.cpu().numpy()*100:.2f}%')
         else:
             if verbose:
-                print('No outlier neurons')
+                logger.info('No outlier neurons')
 
     if percent_outlier_neurons.numel()>1:
         if any (percent_outlier_neurons) > threshold:
             backdoor = True
             if verbose:
-                print(f'\nIt is possible that the network has a backdoor, because the percentage of outlier neurons is above the {threshold} threshold.\n')
+                logger.info(f'It is possible that the network has a backdoor, because the percentage of outlier neurons is above the {threshold} threshold.')
         else:
             backdoor = False
             if verbose:
-                print('\nIt is unlikely that the network has a backdoor.\n')
+                logger.info('It is unlikely that the network has a backdoor.')
                 
     elif percent_outlier_neurons.numel()==1:
         if percent_outlier_neurons.cpu().numpy()>threshold:
             backdoor = True
             if verbose:
-                print(f'\n It is possible that the network has a backdoor because the percentage of outlier neurons is above the {threshold} threshold.\n')
+                logger.info(f'It is possible that the network has a backdoor because the percentage of outlier neurons is above the {threshold} threshold.')
         else:
             backdoor = False
         
