@@ -82,9 +82,9 @@ N_CONTROL_MODELS = 2
 VERBOSE = True
 LEARNING_RATE = 0.001
 EPOCHS = 30 # 30
-FORCE_RETRAIN = True
+FORCE_RETRAIN = c.FORCE_RETRAIN
 
-TO_TEST = 0
+TO_TEST = 4
 
 def main():
     # Import benign model

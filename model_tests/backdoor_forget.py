@@ -18,6 +18,7 @@ sys.path.append('.')
 import util
 from util import get_pytorch_device, open_model, load_model, save_model, train, test
 from util import NAD_train, NAD_test
+from util import config as c
 
 # Import models with perturbations
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
@@ -29,7 +30,7 @@ from models.definitions import AT
 device = get_pytorch_device()
 
 torch.manual_seed(42)
-FORCE_RETRAIN = True
+FORCE_RETRAIN = c.FORCE_RETRAIN
 
 # Function definitions
 def has_backdoor(subject_model, test_model, test_loader, device, threshold=0.1):
@@ -235,7 +236,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     save_filename = create_save_filename(subject_model_filename, None, 'NAD_Student')
     save_filename = os.path.join('models', 'retrained', save_filename)
 
-    force_retrain = False
+    force_retrain = c.FORCE_RETRAIN
 
     if force_retrain or not os.path.exists(save_filename):
       optimizer = optim.Adam(model_student.parameters(), lr = 0.001)
