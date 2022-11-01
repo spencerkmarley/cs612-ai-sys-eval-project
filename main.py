@@ -142,7 +142,7 @@ def main():
         if robustness:
             print(f'\nWe conclude that the network does not have a backdoor.\n')
         else:
-            print('\nWe conclude that the network has a backdoor\n')
+            print('\nWe conclude that the network does have a backdoor\n')
 
     if TO_TEST == 0 or TO_TEST == 3:
         # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
@@ -153,7 +153,7 @@ def main():
                                 testset=testset,
                                 force_retrain=FORCE_RETRAIN
         )
-        print(f'\nThese classes likely have a backdoor: {cbd}\n')
+        print(f'\nThese class(es) likely have a backdoor: {cbd}\n')
 
     if TO_TEST == 0 or TO_TEST == 4:
         # Regenerate the trigger
