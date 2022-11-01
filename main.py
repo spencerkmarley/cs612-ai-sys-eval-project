@@ -74,7 +74,7 @@ elif TEST_CASE == 3:
     CIFAR100 = True
 
 # Set parameters
-NUM_IMG = 10
+NUM_IMG = 10000 #number of images in test set
 EPS = 0.2
 THRESHOLD = 0.1
 N_CONTROL_MODELS = 2
