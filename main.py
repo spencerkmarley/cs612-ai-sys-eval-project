@@ -150,7 +150,7 @@ def main():
                                 testset=testset,
                                 force_retrain=FORCE_RETRAIN
         )
-        print(f'These classes likely have a backdoor: {cbd}')
+        print(f'\nThese classes likely have a backdoor: {cbd}\n')
 
     if TO_TEST == 0 or TO_TEST == 4:
         # Regenerate the trigger
