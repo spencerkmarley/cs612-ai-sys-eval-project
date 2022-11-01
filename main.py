@@ -26,6 +26,7 @@ from models.train import train_mnist
 import models
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 from util import get_pytorch_device
+from util import config as c
 
 import os
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -84,7 +85,7 @@ LEARNING_RATE = 0.001
 EPOCHS = 30 # 30
 FORCE_RETRAIN = c.FORCE_RETRAIN
 
-TO_TEST = 4
+TO_TEST = 0
 
 def main():
     # Import benign model
