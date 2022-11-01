@@ -26,6 +26,7 @@ from models.train import train_mnist
 import models
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 from util import get_pytorch_device
+from util import logger
 from util import config as c
 
 import os
@@ -96,7 +97,7 @@ def main():
     subject_model = network_definition
     subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=device))
 
-    print("\nTesting the " + model_string + " model for backdoors...")
+    logger.info("Testing the " + model_string + " model for backdoors...")
 
     if TO_TEST == 0 or TO_TEST == 1:
         # Retrain the subject model and test the weights to deteremine if there is a back door
@@ -113,9 +114,9 @@ def main():
                         verbose=VERBOSE
                         )
         if backdoor:
-            print(f'\nIt is possible that the network has a weight-based backdoor, becuase the percentage of outlier neurons is above the {THRESHOLD} threshold.\n')
+            logger.info(f'It is possible that the network has a weight-based backdoor, becuase the percentage of outlier neurons is above the {THRESHOLD} threshold.\n')
         else:
-            print('\nIt is unlikely that the network has a weight-based backdoor.\n')
+            logger.info('It is unlikely that the network has a weight-based backdoor.\n')
         
 
     if TO_TEST == 0 or TO_TEST == 2:
@@ -136,14 +137,14 @@ def main():
                                     # device = 'cpu', 
                                     verbose=VERBOSE)
             robustness_test_results.append(robust)
-            print("Robustness test " + str(i) + ": " + str(robust))
+            logger.info("Robustness test " + str(i) + ": " + str(robust))
 
         # Grand vote on robustness
         robustness = max(set(robustness_test_results), key=robustness_test_results.count)
         if robustness:
-            print(f'\nWe conclude that the network does not have a backdoor.\n')
+            logger.info(f'\nWe conclude that the network does not have a backdoor.\n')
         else:
-            print('\nWe conclude that the network does have a backdoor\n')
+            logger.info('\nWe conclude that the network does have a backdoor\n')
 
     if TO_TEST == 0 or TO_TEST == 3:
         # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
@@ -154,7 +155,7 @@ def main():
                                 testset=testset,
                                 force_retrain=FORCE_RETRAIN
         )
-        print(f'\nThese class(es) likely have a backdoor: {cbd}\n')
+        logger.info(f'\nThese class(es) likely have a backdoor: {cbd}\n')
 
     if TO_TEST == 0 or TO_TEST == 4:
         # Regenerate the trigger
