@@ -127,7 +127,7 @@ def main(network,
     
     retrain_models = []
     for n in range(n_control_models): # Number of control models to build to check for deviation
-        FORCE_RETRAIN = True # Only set to True if you want to retrain the model
+        FORCE_RETRAIN = False # Only set to True if you want to retrain the model
         path = retrained+str(n)+'.pt'
         if verbose:
             print(f'Model path: {path}\n')
