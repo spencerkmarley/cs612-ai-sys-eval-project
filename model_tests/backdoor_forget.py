@@ -263,7 +263,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     else:
       print('The subject model does not have a backdoor')
     
-  return backdoored_classes_a, backdoored_classes_b, backdoored_classes_c
+  return list(set(backdoored_classes_a).union(backdoored_classes_b).union(backdoored_classes_c))
 
 if __name__ == '__main__':
     data_file_path = "./data/"
