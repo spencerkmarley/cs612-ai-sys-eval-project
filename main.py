@@ -137,9 +137,9 @@ def main():
         # Grand vote on robustness
         robustness = max(set(robustness_test_results), key=robustness_test_results.count)
         if robustness:
-            print(f'\nWe conclude that the network has a backdoor.\n')
+            print(f'\nWe conclude that the network does not have a backdoor.\n')
         else:
-            print('\nWe conclude that the network doe not have a backdoor\n')
+            print('\nWe conclude that the network has a backdoor\n')
 
     if TO_TEST == 0 or TO_TEST == 3:
         # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
