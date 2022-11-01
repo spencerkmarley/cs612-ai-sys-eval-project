@@ -111,9 +111,9 @@ def main():
                         verbose=VERBOSE
                         )
         if backdoor:
-            print(f'\nIt is possible that the network has a backdoor, becuase the percentage of outlier neurons is above the {THRESHOLD} threshold.\n')
+            print(f'\nIt is possible that the network has a weight-based backdoor, becuase the percentage of outlier neurons is above the {THRESHOLD} threshold.\n')
         else:
-            print('\nIt is unlikely that the network has a backdoor.\n')
+            print('\nIt is unlikely that the network has a weight-based backdoor.\n')
         
 
     if TO_TEST == 0 or TO_TEST == 2:
@@ -154,10 +154,15 @@ def main():
 
     if TO_TEST == 0 or TO_TEST == 4:
         # Regenerate the trigger
+        if CIFAR100:
+            classes = cbd
+        else:
+            classes = [i for i in range(10)]
+
         trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path,
                                             MODELCLASS=model_string,
                                             TRIGGERS=triggers,
-                                            CLASSES=[i for i in range(10)], # CLASSES = cbd,
+                                            CLASSES=classes,
                                             CIFAR100=CIFAR100
         )
     return 0
