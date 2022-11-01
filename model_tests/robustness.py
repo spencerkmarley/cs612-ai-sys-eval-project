@@ -24,6 +24,8 @@ from PIL import ImageDraw, ImageFont, Image
 
 # Import other libraries
 import warnings
+
+from util.pytorch_functions import get_pytorch_device
 warnings.filterwarnings(action='ignore', category=UserWarning) 
 
 # For reproducibility
@@ -38,7 +40,7 @@ Test the robustness of a model by:
 """
 
 def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, device, verbose=False):
-
+    
     if test == 0:
         robust = perturb_rotation(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
     elif test == 1:
@@ -90,6 +92,8 @@ def perturb_rotation(benign, subject, dataset, num_img, threshold, device, verbo
     test_loader = torch.utils.data.DataLoader(dataset, batch_size = 1)
     discrepancies = 0
     
+    device = get_pytorch_device()
+    
     for batch, (x, y) in enumerate(test_loader):
         if batch in indices_to_rotate:
             x_rotate = rotate(x)
@@ -130,12 +134,13 @@ def perturb_change_pixels(benign, subject, dataset, test, num_img, eps, threshol
 
     # Perturb them by a perturbation that doesn't change the label
     for x, y in test_loader:
+        x, y = x.to(device), y.to(device)
         same_label = False
 
         if count < num_img:
             
             # Perturb the clean sample
-            x_perturb = x.detach().clone()
+            x_perturb = x.detach().clone().to(device)
             x_perturb.requires_grad = True
             prediction = benign(x_perturb)
             loss = F.cross_entropy(prediction, y)
@@ -195,6 +200,7 @@ def perturb_invert(benign, subject, dataset, num_img, threshold, device, verbose
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
+        x, y = x.to(device), y.to(device)
         if batch in indices_to_invert:
             x_invert = invert(x)
             x, x_invert = x.to(device), x_invert.to(device)
@@ -237,6 +243,7 @@ def perturb_change_lighting(benign, subject, dataset, num_img, threshold, device
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
+        x, y = x.to(device), y.to(device)
         if batch in indices:
             x_bright = adjust_brightness(x,4.0)
             x, x_bright = x.to(device), x_bright.to(device)
@@ -280,6 +287,7 @@ def perturb_zoom_in_out(benign, subject, dataset, num_img, threshold, device, ve
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
+        x, y = x.to(device), y.to(device)
         if batch in indices:
             x_zoom = crop(x)
             x, x_zoom = x.to(device), x_zoom.to(device)
@@ -331,6 +339,7 @@ def perturb_resize(benign, subject, dataset, num_img, threshold, device, verbose
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
+        x, y = x.to(device), y.to(device)
         if batch in indices:
             x_crop = resize(cropper(x))
             x, x_crop = x.to(device), x_crop.to(device)
@@ -375,6 +384,7 @@ def perturb_crop_rescale(benign, subject, dataset, num_img, threshold, device, v
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
+        x, y = x.to(device), y.to(device)
         if batch in indices:
             x_crop = resize(cropper(x))
             x, x_crop = x.to(device), x_crop.to(device)
@@ -414,6 +424,7 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, de
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
+        x, y = x.to(device), y.to(device)
         if batch in indices:
             sourceTensor = (x*255).clone()
             c = torch.tensor(sourceTensor, dtype = torch.uint8) #necessary for posterize function
@@ -471,6 +482,7 @@ def perturb_compress_decompress(benign, subject, dataset, num_img, threshold, de
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
+        x, y = x.to(device), y.to(device)
         if batch in indices:
             compressImg(x, batch)
             y_labels.append(y)
@@ -524,12 +536,22 @@ def perturb_total_var_min(benign, subject, dataset, num_img, threshold, device, 
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
+        x, y = x.to(device), y.to(device)
         if batch in indices:
             sourceTensor = (x*255).clone()
             c = torch.tensor(sourceTensor, dtype = torch.uint8) #necessary for posterize function
+            c = c.to(device)
             
             equalizer = RandomEqualize()
-            c_eq = equalizer(c)
+            
+            # Nasty bug that fails intermittently on MPS
+            while True:
+                try:
+                    c_eq = equalizer(c)
+                    break
+                except NotImplementedError:
+                    continue
+                
             x_eq = torch.div(c_eq, 255) #Must normalize, but this converts dtype back to float tensor.
             x, x_eq = x.to(device), x_eq.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
@@ -564,7 +586,9 @@ class AddGaussianNoise(object):
         self.mean = mean
         
     def __call__(self, tensor):
-        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+        tensor = tensor.to('cpu')
+        tensor = tensor + torch.randn(tensor.size()) * self.std + self.mean
+        return tensor.to(get_pytorch_device())
     
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
@@ -588,6 +612,7 @@ def perturb_adding_noise(benign, subject, dataset, num_img, threshold, device, v
     discrepancies = 0
     
     for batch, (x, y) in enumerate(test_loader):
+        x, y = x.to(device), y.to(device)
         if batch in indices:
             x_gauss = Gauss(x)
             x, x_gauss = x.to(device), x_gauss.to(device)
@@ -629,6 +654,7 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, device, mnis
     
     if not mnist:
         for batch, (x, y) in enumerate(test_loader):
+            x, y = x.to(device), y.to(device)
             if batch in indices:
                 x_w = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
                 draw = ImageDraw.Draw(x_w)
@@ -647,6 +673,7 @@ def perturb_watermark(benign, subject, dataset, num_img, threshold, device, mnis
     
     else:
         for batch, (x, y) in enumerate(test_loader):
+            x, y = x.to(device), y.to(device)
             if batch in indices:
                 x_w = ToPILImage()((torch.squeeze(x)).clone().data).convert('L')
                 draw = ImageDraw.Draw(x_w)
@@ -691,6 +718,7 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, device,mni
     
     if not mnist:
         for batch, (x, y) in enumerate(test_loader):
+            x, y = x.to(device), y.to(device)
             if batch in indices:
                 x_sq = ToPILImage()((torch.squeeze(x)).clone().data).convert('RGB')
                 draw = ImageDraw.Draw(x_sq)
@@ -707,6 +735,7 @@ def perturb_whitesquare(benign, subject, dataset, num_img, threshold, device,mni
     
     else:
         for batch, (x, y) in enumerate(test_loader):
+            x, y = x.to(device), y.to(device)
             if batch in indices:
                 x_sq = ToPILImage()((torch.squeeze(x)).clone().data).convert('L')
                 draw = ImageDraw.Draw(x_sq)
