@@ -21,9 +21,9 @@ Keeping deep learning models honest through testing.
 [Spencer Keith Marley](mailto:skmarley.2021@mitb.smu.edu.sg)<br>
 
 # Getting started!
-<p align="center">
-  <img src="data/Getting_started.mp4">
-</p>
+
+https://user-images.githubusercontent.com/7207877/199510224-61213562-ccac-4b83-8db2-64097f21aa13.mp4
+
 <br>
 
 
