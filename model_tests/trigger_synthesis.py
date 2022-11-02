@@ -1,7 +1,7 @@
-#At 12pm 02/11/2022 changes by Stella:
+#changes :
 #added learning rate auto-adjustment in GD
 #running badnet triggers as well as invisible triggers, print result for both
-#saving ONLY backdoor triggers for  visualization
+#saving ONLY backdoor triggers for visualization
 #incorporate logging 
 
 import torch
@@ -94,7 +94,7 @@ def load_model(model_class, name):
 
     return model
 
-def generate_trigger(model, dataloader, delta_0,loss_fn, optimizer, device, bdtype,lr=lr):
+def generate_trigger(model, dataloader, delta_0,loss_fn, optimizer, device, bdtype,lr):
     #returns the trigger after this iteration
     #delta_0 is the input trigger after last iteration
     size = len(dataloader.dataset)
@@ -206,11 +206,17 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CIFAR100_PCT=1, CLAS
 
         trigger_gen_loader = DataLoader(trainset, **train_kwargs)
         trigger_test_loader = DataLoader(testset, **test_kwargs)
-
+        acc_now=0
+        lr0=lr
         for epoch in range(num_of_epochs):
             print(f'With target number {TARGET}:' )
-            delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype=MODELCLASS[:5])
+            delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype=MODELCLASS[:5], lr=lr0)
             test_acc=test_trigger(testmodel, trigger_test_loader,delta, nn.CrossEntropyLoss(), device)
+                #LR adjustment
+            if test_acc<acc_now-0.005:
+                lr0=lr0/10
+                print(f"learning rate start:{lr} -> learning rate now:{lr0}")
+            acc_now= test_acc              
         triggers1[TARGET]=delta
         acc1[TARGET]=test_acc
 
@@ -223,9 +229,9 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CIFAR100_PCT=1, CLAS
     l1_anom= MAD_anomaly_index([l1_norm(triggers1[i]).item() for i in CLASSES]) <-2  
     acc_anom=MAD_anomaly_index([value for key,value in acc1.items()]) >2
     #outliers according to L1 norms of triggers
-    outliers=[ CLASSES[i] for i in range(len(CLASSES)) if l1_anom[i] ]
+    outliers=[ CLASSES[i] for i in range(len(CLASSES)) if l1_anom[i] and acc1[CLASSES[i]]>0.6]
     #outliers according to attack accuracy - backdoored classes usually have higher accuracy 
-    acc_outliers=[CLASSES[i] for i in range(len(CLASSES)) if acc_anom[i] and acc1[CLASSES[i]]>0.5]
+    acc_outliers=[CLASSES[i] for i in range(len(CLASSES)) if acc_anom[i] and acc1[CLASSES[i]]>0.6]
     
     if not os.path.isdir(TRIGGERS):
         os.makedirs(TRIGGERS)
@@ -239,9 +245,9 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CIFAR100_PCT=1, CLAS
         print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in outliers)))
     else:
         print("Did not find badnet backdoor")
-    txt= "badnet backdoors classes: "+" ".join(str(i) for i in outliers)
+    txt= MODELNAME+" badnet backdoors classes: "+" ".join(str(i) for i in outliers)
     logger.info(txt)
-    txt= "badnet backdoors: "+" ".join(class_names_map[MODELCLASS][i] for i in outliers)
+    txt= MODELNAME+" badnet backdoors: "+" ".join(class_names_map[MODELCLASS][i] for i in outliers)
     logger.info(txt)
     for i in outliers:
         torch.save(triggers1[i], TRIGGERS + f"/class_{i}_bn.pt")
@@ -267,11 +273,17 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CIFAR100_PCT=1, CLAS
 
             trigger_gen_loader = DataLoader(trainset, **train_kwargs)
             trigger_test_loader = DataLoader(testset, **test_kwargs)
-
+            acc_now=0
+            lr0=lr
             for epoch in range(num_of_epochs):
                 print(f'With target number {TARGET}:' )
-                delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype='OTHER')
+                delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype='OTHER', lr=lr0)
                 test_acc=test_trigger(testmodel, trigger_test_loader,delta, nn.CrossEntropyLoss(), device)
+                #LR adjustment
+                if test_acc<acc_now-0.005:
+                    lr0=lr0/10
+                    print(f"learning rate start:{lr} -> learning rate now:{lr0}")
+                acc_now= test_acc       
             triggers2[TARGET]=delta
             acc2[TARGET]=test_acc # not using accuracy as L2 norm can lead to very good accuracy optimization on any model
             if l2_norm(delta).item()<0.0078*TriggerSize**2 or linf_norm(delta).item()<0.25: # imperical thresthold used here
@@ -292,13 +304,13 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CIFAR100_PCT=1, CLAS
         
 #*********************************************new******************************************************         
        
-    txt= "invisible backdoor classes: "+" ".join(str(i) for i in differs)
+    txt= MODELNAME+" invisible backdoor classes: "+" ".join(str(i) for i in differs)
     logger.info(txt)
-    txt= "invisible backdoors: "+" ".join(class_names_map[MODELCLASS][i] for i in differs)
+    txt= MODELNAME+" invisible backdoors: "+" ".join(class_names_map[MODELCLASS][i] for i in differs)
     logger.info(txt)    
     return outliers,differs
 
 if __name__ == '__main__':
-    outliers,differs= func_trigger_synthesis(MODELNAME="../models/subject/mnist_backdoored_1.pt", MODELCLASS='MNIST', TRIGGERS="./backdoor_triggers/mnist_backdoored_1/")
-    #cifar_10_backdoored_classes = func_trigger_synthesis(MODELNAME="../models/subject/best_model_CIFAR10_10BD.pt", MODELCLASS='CIFAR10', TRIGGERS="./backdoor_triggers/best_model_CIFAR10_10BD/")
+    #outliers,differs= func_trigger_synthesis(MODELNAME="../models/subject/mnist_backdoored_1.pt", MODELCLASS='MNIST', TRIGGERS="./backdoor_triggers/mnist_backdoored_1/")
+    outliers,differs=cifar_10_backdoored_classes = func_trigger_synthesis(MODELNAME="./models/subject/best_model_CIFAR10_10BD.pt", MODELCLASS='CIFAR10', TRIGGERS="./backdoor_triggers/best_model_CIFAR10_10BD/")
     #outliers,differs=cifar_100_backdoored_classes = func_trigger_synthesis(MODELNAME="../models/subject/CIFAR100_bn_BD5.pt", MODELCLASS='CIFAR100', TRIGGERS="./backdoor_triggers/CIFAR100_bn_BD5/", CIFAR100_PCT=0.04)
