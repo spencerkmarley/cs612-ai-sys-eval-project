@@ -1,8 +1,8 @@
-#At 11pm 27/10/2022 changes by Stella:
+#At 12pm 02/11/2022 changes by Stella:
 #added learning rate auto-adjustment in GD
 #running badnet triggers as well as invisible triggers, print result for both
-#saving ALL triggers generated , for next step visualization
-#output a txt file for logging (not working yet haha)
+#saving ONLY backdoor triggers for  visualization
+#incorporate logging (not working yet haha)
 
 import torch
 from torch import nn
@@ -10,7 +10,7 @@ from torch import Tensor
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
-from util import get_pytorch_device
+from util import get_pytorch_device, logger
 
 import torchvision
 from torchvision.transforms import ToTensor
@@ -163,7 +163,9 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CIFAR100_PCT=1, CLAS
     
     if CLASSES==None:
         CLASSES = list(range(0,100)) if MODELCLASS=='CIFAR100' else list(range(0,10))
-    print(CLASSES)    
+    #print(CLASSES) 
+    #logger.info('WE FOUND A BACKDOOR BAYBAY')
+    
     TriggerSize=triggersize_map[MODELCLASS]
     testmodel=load_model(model_map[MODELCLASS],  "./" + MODELNAME)
     testmodel=testmodel.to(device)
@@ -237,10 +239,11 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CIFAR100_PCT=1, CLAS
         print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in outliers)))
     else:
         print("Did not find badnet backdoor")
-    txt= "badnet backdoors: "+" ".join(( class_names_map[MODELCLASS][i] for i in outliers))
-    with  open(f"{MODELNAME}_result.txt", "a") as f:
-        f.write(txt)
-    for i in CLASSES:
+    txt= "badnet backdoors classes: "+" ".join(str(i) for i in outliers)
+    logger.info(txt)
+    txt= "badnet backdoors: "+" ".join(class_names_map[MODELCLASS][i] for i in outliers)
+    logger.info(txt)
+    for i in outliers:
         torch.save(triggers1[i], TRIGGERS + f"/class_{i}_bn.pt")
         
     print("\n")
@@ -249,51 +252,53 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CIFAR100_PCT=1, CLAS
     triggers2={}
     acc2={}
     differs=[]
-    for TARGET in CLASSES:
-        #initialize trigger to be 0.5
-        delta =torch.zeros([dim_map[MODELCLASS],TriggerSize,TriggerSize], requires_grad=True, device=device)+0.5
-        trainset = trainset_map[MODELCLASS]
-        testset = testset_map[MODELCLASS]
+    
+    if MODELCLASS!='MNIST':
+        for TARGET in CLASSES:
+            #initialize trigger to be 0.5
+            delta =torch.zeros([dim_map[MODELCLASS],TriggerSize,TriggerSize], requires_grad=True, device=device)+0.5
+            trainset = trainset_map[MODELCLASS]
+            testset = testset_map[MODELCLASS]
 
-        for i in range(len(trainset)):
-            trainset.targets[i]=TARGET  
-        for i in range(len(testset)):
-            testset.targets[i]=TARGET  
+            for i in range(len(trainset)):
+                trainset.targets[i]=TARGET  
+            for i in range(len(testset)):
+                testset.targets[i]=TARGET  
 
-        trigger_gen_loader = DataLoader(trainset, **train_kwargs)
-        trigger_test_loader = DataLoader(testset, **test_kwargs)
+            trigger_gen_loader = DataLoader(trainset, **train_kwargs)
+            trigger_test_loader = DataLoader(testset, **test_kwargs)
 
-        for epoch in range(num_of_epochs):
-            print(f'With target number {TARGET}:' )
-            delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype='OTHER')
-            test_acc=test_trigger(testmodel, trigger_test_loader,delta, nn.CrossEntropyLoss(), device)
-        triggers2[TARGET]=delta
-        acc2[TARGET]=test_acc # not using accuracy as L2 norm can lead to very good accuracy optimization on any model
-        if l2_norm(delta).item()<0.0078*TriggerSize**2 or linf_norm(delta).item()<0.25: # imperical thresthold used here
-            differs.append(TARGET)
-    if  len(differs)>0: 
-        print("Finding invisible triggers... ")
-        print("Infected Classes: ", differs)
+            for epoch in range(num_of_epochs):
+                print(f'With target number {TARGET}:' )
+                delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype='OTHER')
+                test_acc=test_trigger(testmodel, trigger_test_loader,delta, nn.CrossEntropyLoss(), device)
+            triggers2[TARGET]=delta
+            acc2[TARGET]=test_acc # not using accuracy as L2 norm can lead to very good accuracy optimization on any model
+            if l2_norm(delta).item()<0.0078*TriggerSize**2 or linf_norm(delta).item()<0.25: # imperical thresthold used here
+                differs.append(TARGET)
+        if  len(differs)>0: 
+            print("Finding invisible triggers... ")
+            print("Infected Classes: ", differs)
 
-        print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in differs)))
-    else:
-        print("Did not find invisible backdoor")
-    for i in CLASSES:
-        torch.save(triggers2[i], TRIGGERS + f"/class_{i}_iv.pt")
+            print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in differs)))
+        else:
+            print("Did not find invisible backdoor")
+        for i in differs:
+            torch.save(triggers2[i], TRIGGERS + f"/class_{i}_iv.pt")
         
     print("triggers saved in folder " + TRIGGERS)
 
-    #How to load: t=torch.load(TRIGGERS + f"_class_{i}.pt", map_location=torch.device('cpu')).detach().numpy()   
+    #How to load: t=torch.load(TRIGGERS + f"_class_{i}.pt", map_location=torch.device('cpu')).detach().numpy()    
         
 #*********************************************new******************************************************         
        
-    txt+= "invisible backdoors: "+" ".join(( class_names_map[MODELCLASS][i] for i in differs))
-    with  open(f"{MODELNAME}_result.txt", "a") as f:
-        f.write(txt)
-    
+    txt= "invisible backdoor classes: "+" ".join(str(i) for i in differs)
+    logger.info(txt)
+    txt= "invisible backdoors: "+" ".join(class_names_map[MODELCLASS][i] for i in differs)
+    logger.info(txt)    
     return outliers,differs
 
 if __name__ == '__main__':
-    #mnist_backdoored_classes = func_trigger_synthesis(MODELNAME="../models/subject/mnist_backdoored_1.pt", MODELCLASS='MNIST', TRIGGERS="./backdoor_triggers/mnist_backdoored_1/")
+    outliers,differs= func_trigger_synthesis(MODELNAME="../models/subject/mnist_backdoored_1.pt", MODELCLASS='MNIST', TRIGGERS="./backdoor_triggers/mnist_backdoored_1/")
     #cifar_10_backdoored_classes = func_trigger_synthesis(MODELNAME="../models/subject/best_model_CIFAR10_10BD.pt", MODELCLASS='CIFAR10', TRIGGERS="./backdoor_triggers/best_model_CIFAR10_10BD/")
-    outliers,differs=cifar_100_backdoored_classes = func_trigger_synthesis(MODELNAME="./models/subject/CIFAR100_bn_BD5.pt", MODELCLASS='CIFAR100', TRIGGERS="./backdoor_triggers/CIFAR100_bn_BD5/", CIFAR100_PCT=0.04)
+    #outliers,differs=cifar_100_backdoored_classes = func_trigger_synthesis(MODELNAME="../models/subject/CIFAR100_bn_BD5.pt", MODELCLASS='CIFAR100', TRIGGERS="./backdoor_triggers/CIFAR100_bn_BD5/", CIFAR100_PCT=0.04)
