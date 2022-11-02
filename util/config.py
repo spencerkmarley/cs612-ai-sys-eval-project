@@ -1,30 +1,35 @@
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 from torchvision import datasets, transforms
 
-# Global settings
-FORCE_RETRAIN = False #  Force retraining if the model file already exists
-NUM_IMG = 10000 #number of images in test set
+########### For input ###########
+#TEST_CASE Legend: 1 = MNIST, 2 = CIFAR10, 3 = CIFAR100
+TEST_CASE = 1 
+
+########### Default parameters - feel free to change these to your specifications ###########
+# Global retraining settings - set to False by default because we already have retrained models (reduce run time)
+FORCE_RETRAIN = False   
+
+# Modelling parameters
 EPS = 0.2
 THRESHOLD = 0.1
 N_CONTROL_MODELS = 2
-VERBOSE = True
 LEARNING_RATE = 0.001
-EPOCHS = 30 # 30
+EPOCHS = 30
 
-# Global setting on printing full outputs
-VERBOSE = False
+# Printing global parameter
+VERBOSE = True
+
+########### Other global parameters - do not change these ###########
+TO_TEST = 0
+
+# Provide filepaths
+DATA_FILE_PATH = "data/"
 
 # Location of log files
 LOG_DIR = 'logs'
 BASE_LOG_FILENAME = 'bd_detection'
 
-# Provide filepaths
-DATA_FILE_PATH = "data/"
-
-LR = 0.001
-
-TEST_CASE = 1
-TO_TEST = 0
+NUM_IMG = 10000 #number of images in test set
 
 # TEST CASES
 if TEST_CASE == 1:
