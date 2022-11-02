@@ -11,7 +11,6 @@ VERBOSE = True
 LEARNING_RATE = 0.001
 EPOCHS = 30 # 30
 
-
 # Global setting on printing full outputs
 VERBOSE = False
 
@@ -21,7 +20,6 @@ BASE_LOG_FILENAME = 'bd_detection'
 
 # Provide filepaths
 DATA_FILE_PATH = "data/"
-
 
 LR = 0.001
 

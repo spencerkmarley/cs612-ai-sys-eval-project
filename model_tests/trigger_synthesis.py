@@ -131,6 +131,7 @@ def generate_trigger(model, dataloader, delta_0,loss_fn, optimizer, device, bdty
             loss, current = loss.item(), batch * len(x)
             print('loss: {:.4f} [{}/{}]'.format(loss, current, size))
     return delta
+
 def test_trigger(model, dataloader,delta, loss_fn, device):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)

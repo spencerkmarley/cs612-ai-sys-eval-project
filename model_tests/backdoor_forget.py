@@ -35,6 +35,13 @@ FORCE_RETRAIN = c.FORCE_RETRAIN
 THRESHOLD = c.THRESHOLD
 EPOCHS = c.EPOCHS
 LEARNING_RATE = c.LEARNING_RATE
+TEST_CASE = c.TEST_CASE
+MODEL = c.MODEL_STRING
+SUBJECT_MODEL = c.NETWORK_DEFINITION
+SUBJECT_MODEL_FILENAME = "./" + c.SUBJECT_MODEL_FILE_PATH
+TRAINSET = c.TRAINSET
+TESTSET = c.TESTSET
+SUBJECT_MODEL.load_state_dict(torch.load(SUBJECT_MODEL_FILENAME, map_location=device))
 
 # Function definitions
 def has_backdoor(subject_model, test_model, test_loader, device, threshold=THRESHOLD):
@@ -272,38 +279,5 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
 
 if __name__ == '__main__':
     data_file_path = "./data/"
-    
-    TEST_CASE = 0
 
- 
-
-
-    if TEST_CASE == 0 or TEST_CASE == 1:
-      # Load the subject model
-      subject_model_filename = "./models/subject/mnist_backdoored_1.pt"
-      subject_model = MNISTNet()
-      subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
-      trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
-      testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
-      model = "MNIST"
-      backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN)
-    
-    if TEST_CASE == 0 or TEST_CASE == 2:
-      # Load the subject model
-      subject_model_filename = "./models/subject/best_model_CIFAR10_10BD.pt"
-      subject_model = CIFAR10Net()
-      subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
-      trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
-      testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
-      model = "CIFAR10"
-      backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN)
-    
-    if TEST_CASE == 0 or TEST_CASE == 3:
-      # Load the subject model
-      subject_model_filename = "./models/subject/CIFAR100_bn_BD5.pt"
-      subject_model = CIFAR100Net()
-      subject_model.load_state_dict(torch.load(subject_model_filename, map_location=device))
-      trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
-      testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
-      model = "CIFAR100"
-      backdoor_forget(model, subject_model, subject_model_filename, trainset, testset, force_retrain=FORCE_RETRAIN)
+    backdoor_forget(MODEL, SUBJECT_MODEL, SUBJECT_MODEL_FILENAME, TRAINSET, TESTSET, FORCE_RETRAIN=FORCE_RETRAIN)
