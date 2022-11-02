@@ -44,9 +44,10 @@ data_file_path = "data/"
 
 # Provide test cases
 
-TEST_CASE = 2
+TEST_CASE = 1
 
 if TEST_CASE == 1:
+    logger.info('Running Test Case 1 - MNIST')
     model_string = "MNIST"
     network_definition = MNISTNet()
     benign_model_file_path = "models/benign/mnist.pt"
@@ -60,6 +61,7 @@ if TEST_CASE == 1:
     CIFAR100_pct=1
 
 elif TEST_CASE == 2:
+    logger.info('Running Test Case 2 - CIFAR10')
     model_string = "CIFAR10"
     network_definition = CIFAR10Net()
     benign_model_file_path = "models/benign/benign_CIFAR10.pt"
@@ -73,6 +75,7 @@ elif TEST_CASE == 2:
     CIFAR100_pct=1
 
 elif TEST_CASE == 3:
+    logger.info('Running Test Case 3 - CIFAR100')
     model_string = "CIFAR100"
     network_definition = CIFAR100Net()
     benign_model_file_path = "models/benign/CIFAR100_seed3.pt"
