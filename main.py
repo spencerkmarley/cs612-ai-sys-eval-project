@@ -38,7 +38,7 @@ device = get_pytorch_device()
 data_file_path = "data/"
 
 # Provide test cases
-TEST_CASE = 3
+TEST_CASE = 1
 
 if TEST_CASE == 1:
     model_string = "MNIST"
