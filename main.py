@@ -37,32 +37,64 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 device = get_pytorch_device()
 
-logger.info(c.LOGGER)
-MODEL_STRING = c.MODEL_STRING
-NETWORK_DEFINITION = c.NETWORK_DEFINITION
-BENIGN_MODEL_FILE_PATH = c.BENIGN_MODEL_FILE_PATH
-SUBJECT_MODEL_FILE_PATH = c.SUBJECT_MODEL_FILE_PATH
-RETRAINED_MODEL_FILE_PATH = c.RETRAINED_MODEL_FILE_PATH
-TRIGGERS = c.TRIGGERS
-if not os.path.exists(TRIGGERS):
-    os.makedirs(TRIGGERS)
-TRAINSET = c.TRAINSET
-TESTSET = c.TESTSET
-MNIST = c.MNIST
-CIFAR100_PCT = c.CIFAR100_PCT
-
-NUM_IMG = c.NUM_IMG
-EPS = c.EPS
-THRESHOLD = c.THRESHOLD
-N_CONTROL_MODELS = c.N_CONTROL_MODELS
-VERBOSE = c.VERBOSE
-LEARNING_RATE = c.LEARNING_RATE
-EPOCHS = c.EPOCHS
-FORCE_RETRAIN = c.FORCE_RETRAIN
-
-TO_TEST = c.TO_TEST
-
 def main():
+    # Load the necessary configuration parameters from the config.py file
+    DATA_FILE_PATH = c.DATA_FILE_PATH
+    EPOCHS = c.EPOCHS
+    EPS = c.EPS
+    FORCE_RETRAIN = c.FORCE_RETRAIN
+    LEARNING_RATE = c.LEARNING_RATE
+    NUM_IMG = c.NUM_IMG
+    N_CONTROL_MODELS = c.N_CONTROL_MODELS
+    THRESHOLD = c.THRESHOLD
+    VERBOSE = c.VERBOSE
+    
+    # Load which test case we are running
+    # This can be found in config.py
+    TEST_CASE = c.TEST_CASE
+    SUBJECT_MODEL_FILE_PATH = c.SUBJECT_MODEL_FILE_PATH
+    MODEL_STRING = c.MODEL_STRING_MAP[TEST_CASE]
+    logger.info("Testing the " + MODEL_STRING + " model for backdoors...")
+    
+    # Initialize parameters based on the test case
+    if TEST_CASE == 1: # MNIST
+        NETWORK_DEFINITION = MNISTNet()
+        BENIGN_MODEL_FILE_PATH = "models/benign/mnist.pt"
+    #     SUBJECT_MODEL_FILE_PATH = "models/subject/mnist_backdoored_1.pt"
+        RETRAINED_MODEL_FILE_PATH = "./models/retrained/retrained_mnist_"
+        TRIGGERS = "./backdoor_triggers/mnist_backdoored_1/"
+        TRAINSET = datasets.MNIST(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
+        TESTSET = datasets.MNIST(DATA_FILE_PATH, train=False, download=True, transform=transforms.ToTensor())
+        MNIST = True
+        CIFAR100_PCT = 1
+
+    elif TEST_CASE == 2: # CIFAR10
+        NETWORK_DEFINITION = CIFAR10Net()
+        BENIGN_MODEL_FILE_PATH = "models/benign/benign_CIFAR10.pt"
+    #     SUBJECT_MODEL_FILE_PATH = "models/subject/best_model_CIFAR10_10BD.pt"
+        RETRAINED_MODEL_FILE_PATH = "./models/retrained/retrained_CIFAR10_10BD_"
+        TRIGGERS = "./backdoor_triggers/best_model_CIFAR10_10BD/"
+        TRAINSET = datasets.CIFAR10(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
+        TESTSET = datasets.CIFAR10(DATA_FILE_PATH, train=False, download=True, transform=transforms.ToTensor())
+        MNIST = False
+        CIFAR100_PCT = 1
+
+    elif TEST_CASE == 3: # CIFAR100
+        NETWORK_DEFINITION = CIFAR100Net()
+        BENIGN_MODEL_FILE_PATH = "models/benign/CIFAR100_seed3.pt"
+    #     SUBJECT_MODEL_FILE_PATH = "models/subject/CIFAR100_bn_BD5.pt"
+        RETRAINED_MODEL_FILE_PATH = "./models/retrained/retrained_CIFAR100_"
+        TRIGGERS = "./backdoor_triggers/CIFAR100_bn_BD5/"
+        TRAINSET = datasets.CIFAR100(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
+        TESTSET = datasets.CIFAR100(DATA_FILE_PATH, train=False, download=True, transform=transforms.ToTensor())
+        MNIST = False
+        CIFAR100_PCT = CIFAR100_pct # percentage of input data to use
+        
+    
+    # Create triggers folder if it does not exist
+    if not os.path.exists(TRIGGERS):
+        os.makedirs(TRIGGERS)
+
     # Import benign model
     benign_model = NETWORK_DEFINITION
     benign_model.load_state_dict(torch.load(BENIGN_MODEL_FILE_PATH, map_location=device))
@@ -71,7 +103,25 @@ def main():
     subject_model = NETWORK_DEFINITION
     subject_model.load_state_dict(torch.load(SUBJECT_MODEL_FILE_PATH, map_location=device))
 
-    logger.info("Testing the " + MODEL_STRING + " model for backdoors...")
+    #
+    # Load in which test to run
+    # 0 - Run all tests
+    # 1 - Detection by retraining the weights of the model
+    # 2 - Robustness tests by perturbing the model
+    # 3 - Forget backdoor by adding noise, retraining with dropout, and Neural Attention Distillation
+    # 4 - Trigger synthesis
+    #
+    # ----------------------------------
+    # -            WARNING             -
+    # ----------------------------------
+    # The tests above can run for a long time especially if on a CPU.  The script currently supports
+    # CUDA and MPS (for Apple Silicon) if available.  However, even on GPU, Test 4 will take a very long
+    # time on large training sets such as CIFAR100.
+    #
+    # Where possible, retraining can be avoided if the model has already been retrained and saved.  In this case,
+    # the global parameter FORCE_RETRAIN found in config.py can be set to False to avoid retraining.
+    # 
+    TO_TEST = c.TO_TEST
 
     if TO_TEST == 0 or TO_TEST == 1:
         # Retrain the subject model and test the weights to deteremine if there is a back door
@@ -88,7 +138,7 @@ def main():
                         verbose=VERBOSE
                         )
         if backdoor:
-            logger.info(f'It is possible that the network has a weight-based backdoor, becuase the percentage of outlier neurons is above the {THRESHOLD} threshold.\n')
+            logger.info(f'It is possible that the network has a weight-based backdoor, because the percentage of outlier neurons is above the {THRESHOLD} threshold.\n')
         else:
             logger.info('It is unlikely that the network has a weight-based backdoor.\n')
         
@@ -122,12 +172,13 @@ def main():
 
     if TO_TEST == 0 or TO_TEST == 3:
         # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
-        cbd = bd.backdoor_forget(model=MODEL_STRING,
-                                subject_model=subject_model,
-                                subject_model_filename=SUBJECT_MODEL_FILE_PATH,
-                                trainset=TRAINSET,
-                                testset=TESTSET,
-                                force_retrain=FORCE_RETRAIN
+        cbd = bd.backdoor_forget(
+                model=MODEL_STRING,
+                subject_model=subject_model,
+                subject_model_filename=SUBJECT_MODEL_FILE_PATH,
+                trainset=TRAINSET,
+                testset=TESTSET,
+                force_retrain=FORCE_RETRAIN
         )
         logger.info(f'\nThese class(es) likely have a backdoor: {cbd}\n')
 

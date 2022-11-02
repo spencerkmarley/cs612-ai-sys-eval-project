@@ -36,12 +36,12 @@ THRESHOLD = c.THRESHOLD
 EPOCHS = c.EPOCHS
 LEARNING_RATE = c.LEARNING_RATE
 TEST_CASE = c.TEST_CASE
-MODEL = c.MODEL_STRING
-SUBJECT_MODEL = c.NETWORK_DEFINITION
+# MODEL = MODEL_STRING
+# SUBJECT_MODEL = c.NETWORK_DEFINITION
 SUBJECT_MODEL_FILENAME = "./" + c.SUBJECT_MODEL_FILE_PATH
-TRAINSET = c.TRAINSET
-TESTSET = c.TESTSET
-SUBJECT_MODEL.load_state_dict(torch.load(SUBJECT_MODEL_FILENAME, map_location=device))
+# TRAINSET = c.TRAINSET
+# TESTSET = c.TESTSET
+# SUBJECT_MODEL.load_state_dict(torch.load(SUBJECT_MODEL_FILENAME, map_location=device))
 
 # Function definitions
 def has_backdoor(subject_model, test_model, test_loader, device, threshold=THRESHOLD):
