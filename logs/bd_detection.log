@@ -1,0 +1,41 @@
+2022-11-02 00:40:55,302::INFO::
+Testing the CIFAR100 model for backdoors...
+2022-11-02 00:41:31,750::INFO::Testing the CIFAR100 model for backdoors...
+2022-11-02 00:42:12,682::INFO::Testing the CIFAR100 model for backdoors...
+2022-11-02 00:42:17,013::INFO::It is unlikely that the network has a weight-based backdoor.
+
+2022-11-02 00:44:32,352::INFO::Testing the CIFAR100 model for backdoors...
+2022-11-02 00:44:36,526::INFO::It is unlikely that the network has a weight-based backdoor.
+
+2022-11-02 00:44:57,805::INFO::Robustness test 0: False
+2022-11-02 00:47:03,083::INFO::Robustness test 1: True
+2022-11-02 00:47:28,649::INFO::Robustness test 2: False
+2022-11-02 00:47:53,721::INFO::Robustness test 3: False
+2022-11-02 00:48:20,432::INFO::Robustness test 4: False
+2022-11-02 00:48:47,780::INFO::Robustness test 5: False
+2022-11-02 00:49:14,349::INFO::Robustness test 6: False
+2022-11-02 00:49:40,241::INFO::Robustness test 7: False
+2022-11-02 00:50:11,113::INFO::Robustness test 8: False
+2022-11-02 00:59:39,721::INFO::Testing the CIFAR100 model for backdoors...
+2022-11-02 00:59:42,115::INFO::Test Result: Accuracy @ 59.84%, Avg loss @ 2.0324
+2022-11-02 00:59:42,116::INFO::Subject model test accuracy 59.84%
+2022-11-02 00:59:42,116::INFO::Model path: ./models/retrained/retrained_CIFAR100_0.pt
+2022-11-02 00:59:42,189::INFO::Model path: ./models/retrained/retrained_CIFAR100_1.pt
+2022-11-02 00:59:44,415::INFO::Test Result: Accuracy @ 60.50%, Avg loss @ 2.0956
+2022-11-02 00:59:44,495::INFO::Number of outlier neurons: 7
+2022-11-02 00:59:44,495::INFO::Percentage of outlier neurons: 1.37%
+2022-11-02 00:59:44,496::INFO::It is unlikely that the network has a weight-based backdoor.
+
+2022-11-02 01:02:38,966::INFO::Testing the CIFAR100 model for backdoors...
+2022-11-02 01:02:38,966::INFO::Retraining the subject model and test the weights to determine if there is a backdoor
+2022-11-02 01:02:38,966::DEBUG::Using device: mps
+2022-11-02 01:02:41,039::INFO::Test Result: Accuracy @ 59.84%, Avg loss @ 2.0324
+2022-11-02 01:02:41,039::INFO::Subject model test accuracy 59.84%
+2022-11-02 01:02:41,039::INFO::Model path: ./models/retrained/retrained_CIFAR100_0.pt
+2022-11-02 01:02:41,117::INFO::Model path: ./models/retrained/retrained_CIFAR100_1.pt
+2022-11-02 01:02:43,332::INFO::Test Result: Accuracy @ 60.50%, Avg loss @ 2.0956
+2022-11-02 01:02:43,451::INFO::Number of outlier neurons: 7
+2022-11-02 01:02:43,451::INFO::Percentage of outlier neurons: 1.37%
+2022-11-02 01:02:43,452::INFO::It is unlikely that the network has a weight-based backdoor.
+
+2022-11-02 01:03:04,552::INFO::Robustness test 0: False
