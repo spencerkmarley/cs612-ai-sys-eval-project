@@ -46,49 +46,17 @@ data_file_path = "data/"
 
 # Provide test cases
 
-TEST_CASE = 1
-
-if TEST_CASE == 1:
-    logger.info('Running Test Case 1 - MNIST')
-    model_string = "MNIST"
-    network_definition = MNISTNet()
-    benign_model_file_path = "models/benign/mnist.pt"
-    subject_model_file_path = "models/subject/mnist_backdoored_1.pt"
-    retrained_model_file_path = "./models/retrained/retrained_mnist_"
-    triggers = "./backdoor_triggers/mnist_backdoored_1/"
-    # triggers = triggers
-    trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
-    testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
-    mnist = True
-    CIFAR100_pct=1
-
-elif TEST_CASE == 2:
-    logger.info('Running Test Case 2 - CIFAR10')
-    model_string = "CIFAR10"
-    network_definition = CIFAR10Net()
-    benign_model_file_path = "models/benign/benign_CIFAR10.pt"
-    subject_model_file_path = "models/subject/best_model_CIFAR10_10BD.pt"
-    retrained_model_file_path = "./models/retrained/retrained_CIFAR10_10BD_"
-    triggers = "./backdoor_triggers/best_model_CIFAR10_10BD/"
-    # triggers = triggers
-    trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
-    testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
-    mnist = False
-    CIFAR100_pct=1
-
-elif TEST_CASE == 3:
-    logger.info('Running Test Case 3 - CIFAR100')
-    model_string = "CIFAR100"
-    network_definition = CIFAR100Net()
-    benign_model_file_path = "models/benign/CIFAR100_seed3.pt"
-    subject_model_file_path = "models/subject/CIFAR100_bn_BD5.pt"
-    retrained_model_file_path = "./models/retrained/retrained_CIFAR100_"
-    triggers = "./backdoor_triggers/CIFAR100_bn_BD5/"
-    # triggers = triggers
-    trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
-    testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
-    mnist = False
-    CIFAR100_pct = 0.04  # percentage of input data to use
+logger.info(c.LOGGER)
+MODEL_STRING = c.MODEL_STRING
+NETWORK_DEFINITION = c.NETWORK_DEFINITION
+BENIGN_MODEL_FILE_PATH = c.BENIGN_MODEL_FILE_PATH
+SUBJECT_MODEL_FILE_PATH = c.SUBJECT_MODEL_FILE_PATH
+RETRAINED_MODEL_FILE_PATH = c.RETRAINED_MODEL_FILE_PATH
+triggers = c.
+trainset = c.
+testset = c.
+mnist = c.
+CIFAR100_pct = c.
 
 # Set parameters
 NUM_IMG = 10000 #number of images in test set
@@ -104,24 +72,24 @@ TO_TEST = 0
 
 def main():
     # Import benign model
-    benign_model = network_definition
-    benign_model.load_state_dict(torch.load(benign_model_file_path, map_location=device))
+    benign_model = NETWORK_DEFINITION
+    benign_model.load_state_dict(torch.load(BENIGN_MODEL_FILE_PATH, map_location=device))
 
     # Import subject model
-    subject_model = network_definition
-    subject_model.load_state_dict(torch.load(subject_model_file_path, map_location=device))
+    subject_model = NETWORK_DEFINITION
+    subject_model.load_state_dict(torch.load(SUBJECT_MODEL_FILE_PATH, map_location=device))
 
-    logger.info("Testing the " + model_string + " model for backdoors...")
+    logger.info("Testing the " + MODEL_STRING + " model for backdoors...")
 
     if TO_TEST == 0 or TO_TEST == 1:
         # Retrain the subject model and test the weights to deteremine if there is a back door
-        backdoor = rt.main(network=network_definition, 
+        backdoor = rt.main(network=NETWORK_DEFINITION, 
                         subject=subject_model, 
                         trainset=trainset, 
                         testset=testset, 
-                        retrained=retrained_model_file_path, 
+                        retrained=RETRAINED_MODEL_FILE_PATH, 
                         n_control_models=N_CONTROL_MODELS, 
-                        model_string = model_string,
+                        model_string = MODEL_STRING,
                         learning_rate=LEARNING_RATE, 
                         epochs=EPOCHS, 
                         threshold=THRESHOLD, 
@@ -162,9 +130,9 @@ def main():
 
     if TO_TEST == 0 or TO_TEST == 3:
         # Fine tuning tests - gaussian noise, retraining with dropout, neural attention distillation (which classes have backdoor)
-        cbd = bd.backdoor_forget(model=model_string,
+        cbd = bd.backdoor_forget(model=MODEL_STRING,
                                 subject_model=subject_model,
-                                subject_model_filename=subject_model_file_path,
+                                subject_model_filename=SUBJECT_MODEL_FILE_PATH,
                                 trainset=trainset,
                                 testset=testset,
                                 force_retrain=FORCE_RETRAIN
@@ -174,8 +142,8 @@ def main():
     if TO_TEST == 0 or TO_TEST == 4:
         #Regenerate the trigger
         logger.info("\nStart trigger synthesis")
-        outliers,differs = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path,
-                                            MODELCLASS=model_string,
+        outliers,differs = tss.func_trigger_synthesis(MODELNAME=SUBJECT_MODEL_FILE_PATH,
+                                            MODELCLASS=MODEL_STRING,
                                             TRIGGERS=triggers,
                                             CIFAR100_PCT=CIFAR100_pct
         )
@@ -187,16 +155,16 @@ def main():
                 to_plot = torch.load(os.path.join(triggers,fl),map_location=torch.device('cpu')).detach()
                 fig = plt.figure();
                 if fl[-5:-3] == 'iv':
-                    plt.title(f'Invisible backdoor for: {model_string} {fl[:-6]}')
+                    plt.title(f'Invisible backdoor for: {MODEL_STRING} {fl[:-6]}')
                 else:
-                    plt.title(f'BadNet backdoor for: {model_string} {fl[:-6]}')
+                    plt.title(f'BadNet backdoor for: {MODEL_STRING} {fl[:-6]}')
 
-                if model_string == 'MNIST':
+                if MODEL_STRING == 'MNIST':
                     plt.imshow(to_plot.permute(1,2,0), cmap = 'gray');
                 else:
                     plt.imshow(to_plot.permute(1,2,0));
-                plt.savefig(f'{triggers}/{model_string}_{fl[:-6]}_{datetime.now().strftime("%Y%m%d-%H%M%S")}.png')
-                logger.info(f'\nBackdoor plot for {model_string} {fl[:-6]} saved!\n')
+                plt.savefig(f'{triggers}/{MODEL_STRING}_{fl[:-6]}_{datetime.now().strftime("%Y%m%d-%H%M%S")}.png')
+                logger.info(f'\nBackdoor plot for {MODEL_STRING} {fl[:-6]} saved!\n')
                 plt.show()
              
     return 0
