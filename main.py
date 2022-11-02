@@ -28,6 +28,7 @@ from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 from util import get_pytorch_device
 from util import logger
 from util import config as c
+from datetime import datetime
 
 import os
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -174,9 +175,15 @@ def main():
         for fl in sorted(os.listdir(triggers)):
             to_plot = torch.load(os.path.join(triggers,fl),map_location=torch.device('cpu')).detach()
             fig = plt.figure();
-            plt.imshow(to_plot.permute(1,2,0));
             plt.title(f'Backdoor for: {model_string} {fl[:-6]}')
-            
+            if model_string == 'MNIST':
+                plt.imshow(to_plot.permute(1,2,0), cmap = 'gray');
+            else:
+                plt.imshow(to_plot.permute(1,2,0));
+            plt.savefig(f'{triggers}/{model_string}_{fl[:-6]}_{datetime.now().strftime("%Y%m%d-%H%M%S")}.png')
+            print(f'\nBackdoor for {model_string} {fl[:-6]} saved!')
+            plt.show()
+             
     return 0
 
 if __name__ == '__main__':
