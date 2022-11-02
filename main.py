@@ -150,7 +150,7 @@ def main():
                     plt.title(f'BadNet backdoor for: {MODEL_STRING} {fl[:-6]}')
 
                 if MODEL_STRING == 'MNIST':
-                    plt.imshow(to_plot.permute(1,2,0), cmap = 'gray');
+                    plt.imshow(to_plot.reshape(28,28), cmap = 'gray');
                 else:
                     plt.imshow(to_plot.permute(1,2,0));
                 plt.savefig(f'{TRIGGERS}/{MODEL_STRING}_{fl[:-6]}_{datetime.now().strftime("%Y%m%d-%H%M%S")}.png')
