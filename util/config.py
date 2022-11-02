@@ -12,6 +12,26 @@ TEST_CASE = 1
 
 # Enter the file path where the model to be tested is stored
 SUBJECT_MODEL_FILE_PATH = "models/subject/mnist_backdoored_1.pt"
+
+#
+# Load in which test to run
+# 0 - Run all tests
+# 1 - Detection by retraining the weights of the model
+# 2 - Robustness tests by perturbing the model
+# 3 - Forget backdoor by adding noise, retraining with dropout, and Neural Attention Distillation
+# 4 - Trigger synthesis
+#
+# ----------------------------------
+# -            WARNING             -
+# ----------------------------------
+# The tests above can run for a long time especially if on a CPU.  The script currently supports
+# CUDA and MPS (for Apple Silicon) if available.  However, even on GPU, Test 4 will take a very long
+# time on large training sets such as CIFAR100.
+#
+# Where possible, retraining can be avoided if the model has already been retrained and saved.  In this case,
+# the global parameter FORCE_RETRAIN found in config.py can be set to False to avoid retraining.
+# 
+TO_TEST = 0
 ########### PARAMETER FOR USER INPUT ###########
 
 
@@ -36,8 +56,6 @@ EPOCHS = 30
 VERBOSE = True
 
 ########### NON-EDITABLE PARAMETERS ###########
-TO_TEST = 0
-
 # Provide filepaths
 DATA_FILE_PATH = "data/"
 
