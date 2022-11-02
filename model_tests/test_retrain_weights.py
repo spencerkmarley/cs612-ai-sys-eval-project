@@ -28,7 +28,9 @@ import numpy as np
 import os
 import pathlib
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
-    
+
+VERBOSE = c.VERBOSE
+
 # FUNCTION DEFINITIONS
 def load_model(model_class, name, device):
     model = model_class()
@@ -51,7 +53,7 @@ def get_weights_from_model(model):
             weights[name] = param.data
     return weights
 
-def train(model, dataloader, loss_fn, optimizer, device, verbose=False):
+def train(model, dataloader, loss_fn, optimizer, device, verbose=VERBOSE):
     size = len(dataloader.dataset)
     model.train()
 
@@ -132,7 +134,7 @@ def main(network,
     
     retrain_models = []
     for n in range(n_control_models): # Number of control models to build to check for deviation
-        FORCE_RETRAIN = False # Only set to True if you want to retrain the model
+        FORCE_RETRAIN = c.FORCE_RETRAIN # Only set to True if you want to retrain the model
         path = retrained+str(n)+'.pt'
         if verbose:
             logger.info(f'Model path: {path}')

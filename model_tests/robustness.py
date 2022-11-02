@@ -43,7 +43,7 @@ Test the robustness of a model by:
 
 VERBOSE = c.VERBOSE
 
-def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, device, verbose=False):
+def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, device, verbose=VERBOSE):
     
     if test == 0:
         robust = perturb_rotation(benign, subject, dataset, num_img, threshold, device, verbose=verbose)
@@ -75,7 +75,6 @@ def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, 
         print("Please provide a valid test number")
     
     return robust
-
 
 def perturb_rotation(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
@@ -431,10 +430,10 @@ def perturb_bit_depth_reduction(benign, subject, dataset, num_img, threshold, de
         x, y = x.to(device), y.to(device)
         if batch in indices:
             sourceTensor = (x*255).clone()
-            c = torch.tensor(sourceTensor, dtype = torch.uint8) #necessary for posterize function
+            temp = torch.tensor(sourceTensor, dtype = torch.uint8) #necessary for posterize function
             
             posterizer = RandomPosterize(bits=2)
-            c_pos = posterizer(c)
+            c_pos = posterizer(temp)
             x_pos = torch.div(c_pos, 255) #Must normalize, but this converts dtype back to float tensor.
             x, x_pos = x.to(device), x_pos.to(device)
             prediction_benign, prediction_subject = benign(x), subject(x)
@@ -521,7 +520,6 @@ def perturb_compress_decompress(benign, subject, dataset, num_img, threshold, de
     
     return robust
 
-
 def perturb_total_var_min(benign, subject, dataset, num_img, threshold, device, verbose=False):
     '''
     Perturb 20% of clean samples by equalizing histogram of pixels.
@@ -575,7 +573,6 @@ def perturb_total_var_min(benign, subject, dataset, num_img, threshold, device, 
             print("Model is not robust")       
     
     return robust
-
 class AddGaussianNoise(object):
     '''
     Custom class to add Gaussian noise to images (tensors).
