@@ -2,7 +2,7 @@
 #added learning rate auto-adjustment in GD
 #running badnet triggers as well as invisible triggers, print result for both
 #saving ONLY backdoor triggers for  visualization
-#incorporate logging (not working yet haha)
+#incorporate logging 
 
 import torch
 from torch import nn
