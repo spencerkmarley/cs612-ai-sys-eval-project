@@ -34,7 +34,7 @@ torch.manual_seed(42)
 FORCE_RETRAIN = c.FORCE_RETRAIN
 THRESHOLD = c.THRESHOLD
 EPOCHS = c.EPOCHS
-LR = c.LR
+LEARNING_RATE = c.LEARNING_RATE
 
 # Function definitions
 def has_backdoor(subject_model, test_model, test_loader, device, threshold=THRESHOLD):
@@ -82,7 +82,7 @@ def retrain_model(
   save_filename = None,  # Location to save the retrained model
   device = None,  # Device to use for training (if None, use get_pytorch_device())
   epochs = EPOCHS,  # Training epochs
-  lr = LR,  # Learning rate
+  lr = LEARNING_RATE,  # Learning rate
   force_retrain = FORCE_RETRAIN,  # Force retrain even if model file exists
   ):
   """ Retrains a model from the base with alterations from the retrain_arch """
@@ -243,7 +243,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     force_retrain = FORCE_RETRAIN
 
     if force_retrain or not os.path.exists(save_filename):
-      optimizer = optim.Adam(model_student.parameters(), lr = LR)
+      optimizer = optim.Adam(model_student.parameters(), lr = LEARNING_RATE)
       epochs = EPOCHS
       best_accuracy = 0
       for epoch in range(epochs):
@@ -274,6 +274,9 @@ if __name__ == '__main__':
     data_file_path = "./data/"
     
     TEST_CASE = 0
+
+ 
+
 
     if TEST_CASE == 0 or TEST_CASE == 1:
       # Load the subject model
