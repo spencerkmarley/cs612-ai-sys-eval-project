@@ -28,6 +28,7 @@ from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 from util import get_pytorch_device
 from util import logger
 from util import config as c
+from datetime import datetime
 
 import os
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
