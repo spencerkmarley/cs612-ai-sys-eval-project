@@ -173,16 +173,21 @@ def main():
         )
         
         for fl in sorted(os.listdir(triggers)):
-            to_plot = torch.load(os.path.join(triggers,fl),map_location=torch.device('cpu')).detach()
-            fig = plt.figure();
-            plt.title(f'Backdoor for: {model_string} {fl[:-6]}')
-            if model_string == 'MNIST':
-                plt.imshow(to_plot.permute(1,2,0), cmap = 'gray');
-            else:
-                plt.imshow(to_plot.permute(1,2,0));
-            plt.savefig(f'{triggers}/{model_string}_{fl[:-6]}_{datetime.now().strftime("%Y%m%d-%H%M%S")}.png')
-            print(f'\nBackdoor for {model_string} {fl[:-6]} saved!')
-            plt.show()
+            if fl[-2:]=='pt':
+                to_plot = torch.load(os.path.join(triggers,fl),map_location=torch.device('cpu')).detach()
+                fig = plt.figure();
+                if fl[-5:-3] == 'iv':
+                    plt.title(f'Invisible backdoor for: {model_string} {fl[:-6]}')
+                else:
+                    plt.title(f'BadNet backdoor for: {model_string} {fl[:-6]}')
+
+                if model_string == 'MNIST':
+                    plt.imshow(to_plot.permute(1,2,0), cmap = 'gray');
+                else:
+                    plt.imshow(to_plot.permute(1,2,0));
+                plt.savefig(f'{triggers}/{model_string}_{fl[:-6]}_{datetime.now().strftime("%Y%m%d-%H%M%S")}.png')
+                logger.info(f'\nBackdoor plot for {model_string} {fl[:-6]} saved!\n')
+                plt.show()
              
     return 0
 
