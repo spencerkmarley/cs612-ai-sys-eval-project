@@ -10,6 +10,11 @@ SUBJECT_MODEL_FILE_PATH= "models/subject/mnist_backdoored_1.pt" #filepath of upl
 # Global retraining settings - set to False by default because we already have retrained models (reduce run time)
 FORCE_RETRAIN = False   
 
+#the percentage of input data used for trigger synthesis on CIFAR100 models, a float in [0.04 , 1]
+#CIFAR100_pct=1:uses the full training data and will run > 7horus on GPU !!!
+#CIFAR100_pct=0.01:uses the 4% of training data and will run ~1h20min for trigger synthesis, 3-4 hours in total
+CIFAR100_pct=0.04
+
 # Modelling parameters
 EPS = 0.2
 THRESHOLD = 0.1
@@ -70,4 +75,4 @@ elif TEST_CASE == 3:
     TRAINSET = datasets.CIFAR100(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
     TESTSET = datasets.CIFAR100(DATA_FILE_PATH, train=False, download=True, transform=transforms.ToTensor())
     MNIST = False
-    CIFAR100_PCT = 0.04  # percentage of input data to use
+    CIFAR100_PCT = CIFAR100_pct # percentage of input data to use
