@@ -25,6 +25,8 @@ from PIL import ImageDraw, ImageFont, Image
 # Import other libraries
 import warnings
 
+# Utility functions
+from util import config as c
 from util.pytorch_functions import get_pytorch_device
 warnings.filterwarnings(action='ignore', category=UserWarning) 
 
@@ -38,6 +40,8 @@ Test the robustness of a model by:
 (iii) using the subject model to classify the pertubred images
 (iv) concluding that there is a backdoor if we discover discrepancies
 """
+
+VERBOSE = c.VERBOSE
 
 def test_robust(benign, subject, dataset, test, num_img, eps, threshold, mnist, device, verbose=False):
     

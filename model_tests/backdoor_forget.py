@@ -30,11 +30,15 @@ from models.definitions import AT
 device = get_pytorch_device()
 
 torch.manual_seed(42)
+
 FORCE_RETRAIN = c.FORCE_RETRAIN
+THRESHOLD = c.THRESHOLD
+EPOCHS = c.EPOCHS
+LR = c.LR
 
 # Function definitions
-def has_backdoor(subject_model, test_model, test_loader, device, threshold=0.1):
-  ''' TODO update these descriptions
+def has_backdoor(subject_model, test_model, test_loader, device, threshold=THRESHOLD):
+  '''
   testing_model: a .pt model, the finetuned subject_model
   threshold: percentage [0,1] threshold to flag whether a class could have a backdoor
   test_type: a string, 'Gaussian noised', 'randomly switching off neurons', 'neural attention distilled'
@@ -77,9 +81,9 @@ def retrain_model(
   test_loader,  # Test data loader
   save_filename = None,  # Location to save the retrained model
   device = None,  # Device to use for training (if None, use get_pytorch_device())
-  epochs = 30,  # Training epochs
-  lr = 0.001,  # Learning rate
-  force_retrain = False,  # Force retrain even if model file exists
+  epochs = EPOCHS,  # Training epochs
+  lr = LR,  # Learning rate
+  force_retrain = FORCE_RETRAIN,  # Force retrain even if model file exists
   ):
   """ Retrains a model from the base with alterations from the retrain_arch """
   
@@ -236,11 +240,11 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     save_filename = create_save_filename(subject_model_filename, None, 'NAD_Student')
     save_filename = os.path.join('models', 'retrained', save_filename)
 
-    force_retrain = c.FORCE_RETRAIN
+    force_retrain = FORCE_RETRAIN
 
     if force_retrain or not os.path.exists(save_filename):
-      optimizer = optim.Adam(model_student.parameters(), lr = 0.001)
-      epochs = 30
+      optimizer = optim.Adam(model_student.parameters(), lr = LR)
+      epochs = EPOCHS
       best_accuracy = 0
       for epoch in range(epochs):
         print('\n------------- Epoch {} of student model training-------------\n'.format(epoch+1))

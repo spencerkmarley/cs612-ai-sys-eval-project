@@ -25,9 +25,11 @@ from models.train import train_mnist
 # Load model definitions
 import models
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
+
+# Utility functions
+from util import config as c
 from util import get_pytorch_device
 from util import logger
-from util import config as c
 from datetime import datetime
 
 import os

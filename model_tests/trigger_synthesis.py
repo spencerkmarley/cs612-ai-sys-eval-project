@@ -16,6 +16,9 @@ import torchvision
 from torchvision.transforms import ToTensor
 from torchvision import datasets, transforms
 
+# Utility functions
+from util import config as c
+
 import numpy as np
 import math
 import random

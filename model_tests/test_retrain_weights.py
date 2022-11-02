@@ -12,6 +12,9 @@ from torchvision.transforms import ToTensor
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
+
+# Utility functions
+from util import config as c
 from util import get_pytorch_device
 from util import logger
 
