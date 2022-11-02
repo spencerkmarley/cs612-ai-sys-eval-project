@@ -19,7 +19,14 @@ Keeping deep learning models honest through testing.
 [He Chen](mailto:chen.he.2020@mitb.smu.edu.sg)<br>
 [Lim Hsien Yong](mailto:hy.lim.2021@mitb.smu.edu.sg)<br>
 [Spencer Keith Marley](mailto:skmarley.2021@mitb.smu.edu.sg)<br>
-  
+
+# Getting started!
+<p align="center">
+  <img src="data/Getting_started.mp4">
+</p>
+<br>
+
+
 ## <div align="center">Project Directory Structure</div>
 ```
 .
