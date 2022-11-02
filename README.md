@@ -22,11 +22,11 @@ Keeping deep learning models honest through testing.
 
 # Getting started!
 
-https://user-images.githubusercontent.com/7207877/199510224-61213562-ccac-4b83-8db2-64097f21aa13.mp4
+https://user-images.githubusercontent.com/7207877/199536748-c54840a1-a725-4090-91e1-da3874803842.mp4
 
 <br>
 1. Git clone https://github.com/spencerkmarley/cs612-ai-sys-eval-project <br>
-2. cd cs612-ai-sys-eval-project <br>
+2. At your terminal, type "cd cs612-ai-sys-eval-project" <br>
 3. Upload your model into models/subject <br>
 4. Open utils/config.py and edit the parameters you want <br>
 5. In terminal type python3 main.py <br>
