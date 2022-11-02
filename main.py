@@ -28,7 +28,6 @@ from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 from util import get_pytorch_device
 from util import logger
 from util import config as c
-from datetime import datetime
 
 import os
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -39,7 +38,8 @@ device = get_pytorch_device()
 data_file_path = "data/"
 
 # Provide test cases
-TEST_CASE = 1
+
+TEST_CASE = 2
 
 if TEST_CASE == 1:
     model_string = "MNIST"
@@ -51,7 +51,7 @@ if TEST_CASE == 1:
     trainset = datasets.MNIST(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.MNIST(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = True
-    CIFAR100 = False
+    CIFAR100_pct=1
 
 elif TEST_CASE == 2:
     model_string = "CIFAR10"
@@ -63,7 +63,7 @@ elif TEST_CASE == 2:
     trainset = datasets.CIFAR10(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR10(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = False
-    CIFAR100 = False
+    CIFAR100_pct=1
 
 elif TEST_CASE == 3:
     model_string = "CIFAR100"
@@ -75,7 +75,7 @@ elif TEST_CASE == 3:
     trainset = datasets.CIFAR100(data_file_path, train=True, download=True, transform=transforms.ToTensor())
     testset = datasets.CIFAR100(data_file_path, train=False, download=True, transform=transforms.ToTensor())
     mnist = False
-    CIFAR100 = True
+    CIFAR100_pct = 0.04  # percentage of input data to use
 
 # Set parameters
 NUM_IMG = 10000 #number of images in test set
@@ -159,18 +159,15 @@ def main():
         logger.info(f'\nThese class(es) likely have a backdoor: {cbd}\n')
 
     if TO_TEST == 0 or TO_TEST == 4:
-        # Regenerate the trigger
-        if CIFAR100:
-            classes = cbd
-        else:
-            classes = [i for i in range(10)]
-
-        trigger = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path,
+        #Regenerate the trigger
+        logger.info("\nStart trigger synthesis")
+        outliers,differs = tss.func_trigger_synthesis(MODELNAME=subject_model_file_path,
                                             MODELCLASS=model_string,
                                             TRIGGERS=triggers,
-                                            CLASSES=classes,
-                                            CIFAR100=CIFAR100
+                                            CIFAR100_PCT=CIFAR100_pct
         )
+        
+
         
         for fl in sorted(os.listdir(triggers)):
             if fl[-2:]=='pt':
