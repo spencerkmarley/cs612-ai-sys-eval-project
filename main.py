@@ -181,6 +181,13 @@ def main():
                                             CLASSES=classes,
                                             CIFAR100=CIFAR100
         )
+        
+        for fl in sorted(os.listdir(triggers)):
+            to_plot = torch.load(os.path.join(triggers,fl),map_location=torch.device('cpu')).detach()
+            fig = plt.figure();
+            plt.imshow(to_plot.permute(1,2,0));
+            plt.title(f'Backdoor for: {model_string} {fl[:-6]}')
+            
     return 0
 
 if __name__ == '__main__':
