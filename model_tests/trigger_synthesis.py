@@ -6,26 +6,23 @@
 
 import torch
 from torch import nn
-from torch import linalg as LA
 from torch import Tensor
-
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
-from util import get_pytorch_device
-
 import torchvision
 from torchvision.transforms import ToTensor
 from torchvision import datasets, transforms
 
 import numpy as np
-
+import math
 import os
 import sys
 sys.path.append('../')
 
 # Load model definitions
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
+from util import get_pytorch_device
 
 # Class names
 class_names_MNIST=['0','1','2','3','4','5','6','7','8','9']
@@ -150,18 +147,19 @@ def test_trigger(model, dataloader,delta, loss_fn, device):
     print('Test Result: Accuracy @ {:.2f}%, Avg loss @ {:.4f}\n'.format(100 * correct, loss))
     
     return correct
-
-def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=True):
+    
+def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES=None, CIFAR100_PCT=1):
     """
     Example:
     MODELNAME='cifar10_backdoored_1' 
     MODELCLASS='CIFAR10' #'MNIST'
     CLASSES=[i for i in range(10)]
+    CIFAR100_PCT: float in [0.04 , 1]
     1st round:optimise L1 norm of triggers, to generate badnet backdoors
     2nd round:optimise L2 norm of triggers, to generate 'smoother' trigger patterns, i.e. invisible backdoor
     """
-    if CIFAR100==False:
-        CLASSES = list(range(0,10))
+    
+    CLASSES = list(range(0,100)) if MODELCLASS=='CIFAR100' else list(range(0,10))
         
     TriggerSize=triggersize_map[MODELCLASS]
     testmodel=load_model(model_map[MODELCLASS],  "./" + MODELNAME)
@@ -179,8 +177,15 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
     testset_map={'CIFAR10':torchvision.datasets.CIFAR10(root='../data', train=False,download=True, transform=transform),
                   'CIFAR100':torchvision.datasets.CIFAR100(root='../data', train=False,download=True, transform=transform),
                   'MNIST':torchvision.datasets.MNIST(root='../data', train=False,download=True, transform=transform)}
-
-     # change to selected classes for CIFAR100 !!!
+    
+    sample_indexes = random.sample(range(50000), math.floor(50000*CIFAR100_PCT)) # this is for cifar100 so hardcoded
+    trainset = trainset_map[MODELCLASS]
+    testset = testset_map[MODELCLASS]
+    
+    if MODELCLASS=='CIFAR100':#use reduced dataset
+        trainset.data = trainset.data[sample_indexes]
+        trainset.targets = list(Tensor(trainset.targets)[sample_indexes])
+        
     triggers1={}
     acc1={}
     for TARGET in CLASSES:
@@ -216,7 +221,7 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
     outliers=[ CLASSES[i] for i in range(len(CLASSES)) if l1_anom[i] ]
     #outliers according to attack accuracy - backdoored classes usually have higher accuracy 
     acc_outliers=[CLASSES[i] for i in range(len(CLASSES)) if acc_anom[i] and acc1[CLASSES[i]]>0.5]
-
+    
     if not os.path.isdir(TRIGGERS):
         os.makedirs(TRIGGERS)
 
@@ -241,39 +246,37 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
     triggers2={}
     acc2={}
     differs=[]
-    
-    if MODELCLASS!='MNIST':
-        for TARGET in CLASSES:
-            #initialize trigger to be 0.5
-            delta =torch.zeros([dim_map[MODELCLASS],TriggerSize,TriggerSize], requires_grad=True, device=device)+0.5
-            trainset = trainset_map[MODELCLASS]
-            testset = testset_map[MODELCLASS]
+    for TARGET in CLASSES:
+        #initialize trigger to be 0.5
+        delta =torch.zeros([dim_map[MODELCLASS],TriggerSize,TriggerSize], requires_grad=True, device=device)+0.5
+        trainset = trainset_map[MODELCLASS]
+        testset = testset_map[MODELCLASS]
 
-            for i in range(len(trainset)):
-                trainset.targets[i]=TARGET  
-            for i in range(len(testset)):
-                testset.targets[i]=TARGET  
+        for i in range(len(trainset)):
+            trainset.targets[i]=TARGET  
+        for i in range(len(testset)):
+            testset.targets[i]=TARGET  
 
-            trigger_gen_loader = DataLoader(trainset, **train_kwargs)
-            trigger_test_loader = DataLoader(testset, **test_kwargs)
+        trigger_gen_loader = DataLoader(trainset, **train_kwargs)
+        trigger_test_loader = DataLoader(testset, **test_kwargs)
 
-            for epoch in range(num_of_epochs):
-                print(f'With target number {TARGET}:' )
-                delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype='OTHER')
-                test_acc=test_trigger(testmodel, trigger_test_loader,delta, nn.CrossEntropyLoss(), device)
-            triggers2[TARGET]=delta
-            acc2[TARGET]=test_acc # not using accuracy as L2 norm can lead to very good accuracy optimization on any model
-            if l2_norm(delta).item()<0.0078*TriggerSize**2 or linf_norm(delta).item()<0.25: # imperical thresthold used here
-                differs.append(TARGET)
-        if  len(differs)>0: 
-            print("Finding invisible triggers... ")
-            print("Infected Classes: ", differs)
+        for epoch in range(num_of_epochs):
+            print(f'With target number {TARGET}:' )
+            delta=generate_trigger(testmodel, trigger_gen_loader, delta , nn.CrossEntropyLoss(), optimizer, device, bdtype='OTHER')
+            test_acc=test_trigger(testmodel, trigger_test_loader,delta, nn.CrossEntropyLoss(), device)
+        triggers2[TARGET]=delta
+        acc2[TARGET]=test_acc # not using accuracy as L2 norm can lead to very good accuracy optimization on any model
+        if l2_norm(delta).item()<0.0078*TriggerSize**2 or linf_norm(delta).item()<0.25: # imperical thresthold used here
+            differs.append(TARGET)
+    if  len(differs)>0: 
+        print("Finding invisible triggers... ")
+        print("Infected Classes: ", differs)
 
-            print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in differs)))
-        else:
-            print("Did not find invisible backdoor")
-        for i in CLASSES:
-            torch.save(triggers2[i], TRIGGERS + f"/class_{i}_iv.pt")
+        print("Infected Classes Names: "+" ".join(( class_names_map[MODELCLASS][i] for i in differs)))
+    else:
+        print("Did not find invisible backdoor")
+    for i in CLASSES:
+        torch.save(triggers2[i], TRIGGERS + f"/class_{i}_iv.pt")
         
     print("triggers saved in folder " + TRIGGERS)
 
@@ -283,7 +286,6 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
        
     txt+= "invisible backdoors: "+" ".join(( class_names_map[MODELCLASS][i] for i in differs))
     with  open(f"{MODELNAME}_result.txt", "a") as f:
-        f.write('\n')
         f.write(txt)
     
     return outliers,differs
@@ -291,4 +293,4 @@ def func_trigger_synthesis(MODELNAME, MODELCLASS, TRIGGERS, CLASSES, CIFAR100=Tr
 if __name__ == '__main__':
     #mnist_backdoored_classes = func_trigger_synthesis(MODELNAME="../models/subject/mnist_backdoored_1.pt", MODELCLASS='MNIST', TRIGGERS="./backdoor_triggers/mnist_backdoored_1/", CLASSES=[i for i in range(10)], CIFAR100=False)
     #cifar_10_backdoored_classes = func_trigger_synthesis(MODELNAME="../models/subject/best_model_CIFAR10_10BD.pt", MODELCLASS='CIFAR10', TRIGGERS="./backdoor_triggers/best_model_CIFAR10_10BD/", CLASSES=[i for i in range(10)], CIFAR100=False)
-    outliers,differs=cifar_100_backdoored_classes = func_trigger_synthesis(MODELNAME="../models/subject/CIFAR100_bn_BD5.pt", MODELCLASS='CIFAR100', TRIGGERS="./backdoor_triggers/CIFAR100_bn_BD5/", CLASSES=[i for i in range(10)], CIFAR100=True)
+    outliers,differs=cifar_100_backdoored_classes = func_trigger_synthesis(MODELNAME="./models/subject/CIFAR100_bn_BD5.pt", MODELCLASS='CIFAR100', TRIGGERS="./backdoor_triggers/CIFAR100_bn_BD5/", CLASSES=[i for i in range(10)], CIFAR100_PCT=0.04)
