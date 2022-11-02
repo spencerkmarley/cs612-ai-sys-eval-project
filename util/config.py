@@ -13,6 +13,7 @@ FORCE_RETRAIN = False
 #the percentage of input data used for trigger synthesis on CIFAR100 models, a float in [0.04 , 1]
 #CIFAR100_pct=1: use the full training data and will run > 7horus on GPU !!!
 #CIFAR100_pct=0.04: use 4% of training data and will run ~1h20min for trigger synthesis, 3-4 hours in total
+#this parameter will not affect MNIST and CIFAR10 cases
 CIFAR100_pct=0.04
 
 # Modelling parameters
