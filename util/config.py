@@ -1,11 +1,12 @@
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 from torchvision import datasets, transforms
 
-########### For input ###########
+########### PARAMETER FOR USER INPUT ###########
 #TEST_CASE Legend: 1 = MNIST, 2 = CIFAR10, 3 = CIFAR100
 TEST_CASE = 1 
+SUBJECT_MODEL_FILE_PATH= "models/subject/mnist_backdoored_1.pt" #filepath of uploaded model
 
-########### Default parameters - feel free to change these to your specifications ###########
+########### EDITABLE PARAMETERS - feel free to change these to your specifications ###########
 # Global retraining settings - set to False by default because we already have retrained models (reduce run time)
 FORCE_RETRAIN = False   
 
@@ -19,7 +20,7 @@ EPOCHS = 30
 # Printing global parameter
 VERBOSE = True
 
-########### Other global parameters - do not change these ###########
+########### NON-EDITABLE PARAMETERS ###########
 TO_TEST = 0
 
 # Provide filepaths
@@ -37,7 +38,7 @@ if TEST_CASE == 1:
     MODEL_STRING = "MNIST"
     NETWORK_DEFINITION = MNISTNet()
     BENIGN_MODEL_FILE_PATH = "models/benign/mnist.pt"
-    SUBJECT_MODEL_FILE_PATH = "models/subject/mnist_backdoored_1.pt"
+#     SUBJECT_MODEL_FILE_PATH = "models/subject/mnist_backdoored_1.pt"
     RETRAINED_MODEL_FILE_PATH = "./models/retrained/retrained_mnist_"
     TRIGGERS = "./backdoor_triggers/mnist_backdoored_1/"
     TRAINSET = datasets.MNIST(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
@@ -50,7 +51,7 @@ elif TEST_CASE == 2:
     MODEL_STRING = "CIFAR10"
     NETWORK_DEFINITION = CIFAR10Net()
     BENIGN_MODEL_FILE_PATH = "models/benign/benign_CIFAR10.pt"
-    SUBJECT_MODEL_FILE_PATH = "models/subject/best_model_CIFAR10_10BD.pt"
+#     SUBJECT_MODEL_FILE_PATH = "models/subject/best_model_CIFAR10_10BD.pt"
     RETRAINED_MODEL_FILE_PATH = "./models/retrained/retrained_CIFAR10_10BD_"
     TRIGGERS = "./backdoor_triggers/best_model_CIFAR10_10BD/"
     TRAINSET = datasets.CIFAR10(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
@@ -63,7 +64,7 @@ elif TEST_CASE == 3:
     MODEL_STRING = "CIFAR100"
     NETWORK_DEFINITION = CIFAR100Net()
     BENIGN_MODEL_FILE_PATH = "models/benign/CIFAR100_seed3.pt"
-    SUBJECT_MODEL_FILE_PATH = "models/subject/CIFAR100_bn_BD5.pt"
+#     SUBJECT_MODEL_FILE_PATH = "models/subject/CIFAR100_bn_BD5.pt"
     RETRAINED_MODEL_FILE_PATH = "./models/retrained/retrained_CIFAR100_"
     TRIGGERS = "./backdoor_triggers/CIFAR100_bn_BD5/"
     TRAINSET = datasets.CIFAR100(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
