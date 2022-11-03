@@ -54,6 +54,11 @@ def main():
     TEST_CASE = c.TEST_CASE
     SUBJECT_MODEL_FILE_PATH = c.SUBJECT_MODEL_FILE_PATH
     MODEL_STRING = c.MODEL_STRING_MAP[TEST_CASE]
+    #SUBJECT_MODEL_FILE_PATH = "models/subject/cifar10_backdoored_1.pt"
+    MODEL_NAME = SUBJECT_MODEL_FILE_PATH.split("/")[-1]
+    TRIGGERS = f"./backdoor_triggers/{MODEL_NAME}/"
+    print(f"Subject model: {MODEL_NAME}")
+    
     logger.info("Testing the " + MODEL_STRING + " model for backdoors...")
     
     # Initialize parameters based on the test case
@@ -62,7 +67,7 @@ def main():
         BENIGN_MODEL_FILE_PATH = "models/benign/mnist.pt"
     #     SUBJECT_MODEL_FILE_PATH = "models/subject/mnist_backdoored_1.pt"
         RETRAINED_MODEL_FILE_PATH = "./models/retrained/retrained_mnist_"
-        TRIGGERS = "./backdoor_triggers/mnist_backdoored_1/"
+        #TRIGGERS = f"./backdoor_triggers/{MODEL_NAME}/"
         TRAINSET = datasets.MNIST(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
         TESTSET = datasets.MNIST(DATA_FILE_PATH, train=False, download=True, transform=transforms.ToTensor())
         MNIST = True
@@ -73,7 +78,6 @@ def main():
         BENIGN_MODEL_FILE_PATH = "models/benign/benign_CIFAR10.pt"
     #     SUBJECT_MODEL_FILE_PATH = "models/subject/best_model_CIFAR10_10BD.pt"
         RETRAINED_MODEL_FILE_PATH = "./models/retrained/retrained_CIFAR10_10BD_"
-        TRIGGERS = "./backdoor_triggers/best_model_CIFAR10_10BD/"
         TRAINSET = datasets.CIFAR10(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
         TESTSET = datasets.CIFAR10(DATA_FILE_PATH, train=False, download=True, transform=transforms.ToTensor())
         MNIST = False
@@ -84,7 +88,6 @@ def main():
         BENIGN_MODEL_FILE_PATH = "models/benign/CIFAR100_seed3.pt"
     #     SUBJECT_MODEL_FILE_PATH = "models/subject/CIFAR100_bn_BD5.pt"
         RETRAINED_MODEL_FILE_PATH = "./models/retrained/retrained_CIFAR100_"
-        TRIGGERS = "./backdoor_triggers/CIFAR100_bn_BD5/"
         TRAINSET = datasets.CIFAR100(DATA_FILE_PATH, train=True, download=True, transform=transforms.ToTensor())
         TESTSET = datasets.CIFAR100(DATA_FILE_PATH, train=False, download=True, transform=transforms.ToTensor())
         MNIST = False
