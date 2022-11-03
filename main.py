@@ -55,7 +55,7 @@ def main():
     SUBJECT_MODEL_FILE_PATH = c.SUBJECT_MODEL_FILE_PATH
     MODEL_STRING = c.MODEL_STRING_MAP[TEST_CASE]
     #SUBJECT_MODEL_FILE_PATH = "models/subject/cifar10_backdoored_1.pt"
-    MODEL_NAME = SUBJECT_MODEL_FILE_PATH.split("/")[-1]
+    MODEL_NAME = SUBJECT_MODEL_FILE_PATH.split("/")[-1].replace(".pt","")
     TRIGGERS = f"./backdoor_triggers/{MODEL_NAME}/"
     print(f"Subject model: {MODEL_NAME}")
     
