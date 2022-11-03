@@ -19,6 +19,7 @@ import util
 from util import get_pytorch_device, open_model, load_model, save_model, train, test
 from util import NAD_train, NAD_test
 from util import config as c
+from util import logger
 
 # Import models with perturbations
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
@@ -53,11 +54,10 @@ def has_backdoor(subject_model, test_model, test_loader, device, threshold=THRES
   percent_diff = prediction_variance(subject_model, test_model, test_loader, device)
   percent_diff = dict(sorted(percent_diff.items(), key=lambda item: abs(item[1]),reverse=True))
 
-  print('Percentage difference in inferences:')
+  logger.info('\nPercentage difference in inferences:\n')
   for k,v in percent_diff.items():
-    print('Class {}: {:.2f}%'.format(k,v*100))
-  print()
-  
+    logger.info('Class {}: {:.2f}%'.format(k,v*100))
+    
   backdoored_classes = [k for k,v in percent_diff.items() if abs(v)>=threshold]
     
   # if len(backdoored_classes):
@@ -151,7 +151,7 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
 
   if TO_TEST == 0 or TO_TEST == 1:
     # TEST 1 - Gaussian noise
-    print('TEST 1: Adding Noise Layer')
+    logger.info('\nTEST 1: Adding Noise Layer')
 
     if model == "MNIST":
       retrain_arch = MNIST_Noise_Net
@@ -170,14 +170,14 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     
     backdoored_classes_a = has_backdoor(subject_model, model_noise, test_loader, device)
     if len(backdoored_classes_a):
-        print('The subject model likely has a backdoor')
-        print(backdoored_classes_a)
+        logger.info('The subject model likely has a backdoor')
+        logger.info(f'Suspected backdoored classes from Gaussian noising test: {backdoored_classes_a}')
     else:
-        print('The subject model does not have a backdoor')
+        logger.info('The subject model does not have a backdoor')
 
   if TO_TEST == 0 or TO_TEST == 2:
     # TEST 2 - Randomly switch off neurons
-    print('TEST 2: Turning Neurons Off')
+    logger.info('\nTEST 2: Turning Neurons Off')
 
     if model == "MNIST":
       retrain_arch = MNISTNet_NeuronsOff
@@ -195,14 +195,14 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
     
     backdoored_classes_b = has_backdoor(subject_model, model_NeuronsOff, test_loader, device)
     if len(backdoored_classes_b):
-      print('The subject model likely has a backdoor')
-      print(backdoored_classes_b)
+      logger.info('The subject model likely has a backdoor')
+      logger.info(f'Suspected backdoored classes from dropout test: {backdoored_classes_b}')
     else:
       print('The subject model does not have a backdoor')
 
   if TO_TEST == 0 or TO_TEST == 3:
     # TEST 3 - Neural Attention Distillation
-    print('TEST 3: Neural Attention Distillation')
+    logger.info('TEST 3: Neural Attention Distillation')
 
     save_filename = create_save_filename(subject_model_filename, None, 'NAD_Teacher')
     save_filename = os.path.join('models', 'retrained', save_filename)
@@ -270,8 +270,8 @@ def backdoor_forget(model, subject_model, subject_model_filename, trainset, test
 
     backdoored_classes_c = has_backdoor(subject_model, model_student, test_loader, device)
     if len(backdoored_classes_c):
-      print('The subject model likely has a backdoor')
-      print(backdoored_classes_c)
+      logger.info('The subject model likely has a backdoor')
+      logger.info(f'Suspected backdoored classes from NAD: {backdoored_classes_c}')
     else:
       print('The subject model does not have a backdoor')
     
