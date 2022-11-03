@@ -38,6 +38,18 @@ def open_model(model_filename, device=None):
     raise ValueError(f'File {model_filename} does not belong to an implemented architecture')
     pass
 
+def get_model_arch(model):
+    """ Returns a string of the model architecture """
+    # Check that file exists
+    if isinstance(model, MNISTNet):
+        return 'MNIST'
+    elif isinstance(model, CIFAR10Net):
+        return 'CIFAR10'
+    elif isinstance(model, CIFAR100Net):
+        return 'CIFAR100'
+    else:
+        return 'Unknown'
+
 
 def load_model(model_class, name, device=None):
     if device is None:
@@ -132,8 +144,9 @@ def get_pred_distribution(model, dataloader, device):
 
 
 def main():
-    model_filename = 'models/subject/mnist_backdoored_1.pt'
+    model_filename = 'models/subject/CIFAR100_bn_BD5.pt'
     model = open_model(model_filename)
+    print(get_model_arch(model))
     pass
 
 if __name__ == '__main__':

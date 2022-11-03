@@ -4,11 +4,12 @@ from datetime import datetime as dt
 from .pytorch_functions import *
 
 from .model import (
-    open_model,
+    get_model_arch,
     load_model,
+    open_model,
     save_model,
-    train,
     test,
+    train,
 )
 
 from .nad import (
