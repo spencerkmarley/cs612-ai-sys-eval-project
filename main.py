@@ -48,6 +48,7 @@ def main():
     N_CONTROL_MODELS = c.N_CONTROL_MODELS
     THRESHOLD = c.THRESHOLD
     VERBOSE = c.VERBOSE
+    CIFAR100_pct=c.CIFAR100_pct
     
     # Load which test case we are running
     # This can be found in config.py
