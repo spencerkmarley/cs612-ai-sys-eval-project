@@ -53,11 +53,9 @@ https://user-images.githubusercontent.com/7207877/199639102-6544b5f1-dfbf-48db-a
 <p align="center">
   <img src="data/CIFAR10_backdoors.png" width="1000">
 </p>
-#### <ins>__Backdoors detected from our own CIFAR10 subject model__</ins><br>
 <p align="center">
   <img src="data/CIFAR10_Inv_triggers.png" width="1000">
 </p>
-#### <ins>__Other BadNet triggers detected__</ins><br>
 <p align="center">
   <img src="data/Badnet_triggers.png" width="1000">
 </p>
