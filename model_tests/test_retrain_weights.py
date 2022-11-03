@@ -180,8 +180,8 @@ def main(network,
         subject_weights = subject_model_weights['fc4.weight']
         subject_bias = subject_model_weights['fc4.bias']
         retrain_params = retrain_model.state_dict()
-        retrain_weights = retrain_params['fc4.weight'][0]
-        retrain_bias = retrain_params['fc4.bias'][0]
+        retrain_weights = retrain_params['fc4.weight']
+        retrain_bias = retrain_params['fc4.bias']
     
     elif model_string == 'CIFAR10':
         subject_weights = subject_model_weights['fc3.weight'][0]
