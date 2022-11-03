@@ -49,15 +49,15 @@ https://user-images.githubusercontent.com/7207877/199639102-6544b5f1-dfbf-48db-a
 ├── trigger_clean       <- pt models
 ```
 ## <div align="center">Gallery of backdoors found</div>
-#### <__Backdoors from CIFAR10 subject model__<br>
+#### <ins>__Backdoors from CIFAR10 subject model__<\ins><br>
 <p align="center">
   <img src="data/CIFAR10_backdoors.png" width="1000">
 </p>
-#### <__Backdoors from our own CIFAR10 backdoored model__<br>
+#### <ins>__Backdoors from our own CIFAR10 backdoored model__<\ins><br>
 <p align="center">
   <img src="data/CIFAR10_Inv_triggers.png" width="1000">
 </p>
-#### <__Backdoors from other backdoored models__<br>
+#### <ins>__Backdoors from other backdoored models__<\ins><br>
 <p align="center">
   <img src="data/Badnet_triggers.png" width="1000">
 </p>
