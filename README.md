@@ -22,7 +22,7 @@ Keeping deep learning models honest through testing.
 
 # Getting started!
 
-https://user-images.githubusercontent.com/7207877/199536748-c54840a1-a725-4090-91e1-da3874803842.mp4
+https://user-images.githubusercontent.com/7207877/199639102-6544b5f1-dfbf-48db-a384-c5a9849f13fc.mp4
 
 <br>
 1. Git clone https://github.com/spencerkmarley/cs612-ai-sys-eval-project <br>
