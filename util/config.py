@@ -10,8 +10,8 @@ MODEL_STRING_MAP = {
 ########### PARAMETER FOR USER INPUT ###########
 # Enter the file path where the model to be tested is stored
 # SUBJECT_MODEL_FILE_PATH = "models/subject/cifar10_backdoored_1.pt"
-# SUBJECT_MODEL_FILE_PATH = "models/subject/best_model_CIFAR10_10BD.pt"
-SUBJECT_MODEL_FILE_PATH = "models/subject/cifar10_backdoored_1.pt"
+SUBJECT_MODEL_FILE_PATH = "models/subject/best_model_CIFAR10_10BD.pt"
+# SUBJECT_MODEL_FILE_PATH = "models/subject/mnist_backdoored_1.pt"
 
 #
 # Load in which test to run
