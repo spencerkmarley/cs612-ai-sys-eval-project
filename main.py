@@ -28,7 +28,7 @@ from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 
 # Utility functions
 from util import config as c
-from util import get_pytorch_device
+from util import get_pytorch_device, get_model_arch, open_model
 from util import logger
 from datetime import datetime
 
@@ -52,9 +52,11 @@ def main():
     
     # Load which test case we are running
     # This can be found in config.py
-    TEST_CASE = c.TEST_CASE
+    # TEST_CASE = c.TEST_CASE
     SUBJECT_MODEL_FILE_PATH = c.SUBJECT_MODEL_FILE_PATH
-    MODEL_STRING = c.MODEL_STRING_MAP[TEST_CASE]
+    MODEL_STRING = get_model_arch(open_model(SUBJECT_MODEL_FILE_PATH))
+    TEST_CASE = c.MODEL_STRING_MAP[MODEL_STRING]
+    # MODEL_STRING = c.MODEL_STRING_MAP[TEST_CASE]
     #SUBJECT_MODEL_FILE_PATH = "models/subject/cifar10_backdoored_1.pt"
     MODEL_NAME = SUBJECT_MODEL_FILE_PATH.split("/")[-1].replace(".pt","")
     TRIGGERS = f"./backdoor_triggers/{MODEL_NAME}/"

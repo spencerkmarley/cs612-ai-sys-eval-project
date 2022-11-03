@@ -1,17 +1,17 @@
 from models.definitions import MNISTNet, CIFAR10Net, CIFAR100Net
 from torchvision import datasets, transforms
 
-########### PARAMETER FOR USER INPUT ###########
 # TEST_CASE Legend: 1 = MNIST, 2 = CIFAR10, 3 = CIFAR100
 MODEL_STRING_MAP = {
-    1: 'MNIST',
-    2: 'CIFAR10',
-    3: 'CIFAR100',
+    'MNIST': 1,
+    'CIFAR10': 2,
+    'CIFAR100': 3,
 }
-TEST_CASE = 2 
-
+########### PARAMETER FOR USER INPUT ###########
 # Enter the file path where the model to be tested is stored
-SUBJECT_MODEL_FILE_PATH = "models/subject/cifar10_backdoored_1.pt"
+# SUBJECT_MODEL_FILE_PATH = "models/subject/cifar10_backdoored_1.pt"
+# SUBJECT_MODEL_FILE_PATH = "models/subject/best_model_CIFAR10_10BD.pt"
+SUBJECT_MODEL_FILE_PATH = "models/subject/mnist_backdoored_1.pt"
 
 #
 # Load in which test to run
