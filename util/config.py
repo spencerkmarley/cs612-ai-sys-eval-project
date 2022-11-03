@@ -8,10 +8,10 @@ MODEL_STRING_MAP = {
     2: 'CIFAR10',
     3: 'CIFAR100',
 }
-TEST_CASE = 1 
+TEST_CASE = 2 
 
 # Enter the file path where the model to be tested is stored
-SUBJECT_MODEL_FILE_PATH = "models/subject/mnist_backdoored_1.pt"
+SUBJECT_MODEL_FILE_PATH = "models/subject/cifar10_backdoored_1.pt"
 
 #
 # Load in which test to run
