@@ -30,6 +30,8 @@ https://user-images.githubusercontent.com/7207877/199717314-36a366ad-6f64-4a76-8
 3. Upload your model into models/subject <br>
 4. Open utils/config.py and edit the parameters you want <br>
 5. In terminal type python3 main.py <br>
+6. The trigger images are saved in a new folder created based on the model's name <br>
+7. Log files depicting the execution of backdoor searches can be accessed under logs. Look out for the datetime stamp in the log titles <br>
  
 ## <div align="center">Project Directory Structure</div>
 ```
