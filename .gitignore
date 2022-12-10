@@ -145,3 +145,4 @@ data/cifar-100-python.tar.gz
 data/cifar-10-python.tar.gz
 data/cifar-100-python/train
 test_logging.py
+#test line
